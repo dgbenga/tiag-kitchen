@@ -7,7 +7,6 @@
 const CACHE_NAME = 'tiag-kitchen-v2';
 
 const CORE_ASSETS = [
-  '/',
   './',
   './index.html',
   './manifest.webmanifest',
@@ -60,7 +59,7 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(() => {
-          return caches.match('./index.html').then((cached) => cached || caches.match('/'));
+          return caches.match('./index.html').then((cached) => cached || caches.match('./') || caches.match('/'));
         })
     );
     return;
