@@ -30,6 +30,7 @@
 | **2026-10-19** | Data Model | **Monotonic Sequence Numbers (`seq`)** | Every write increments `seq`. On boot, the loader reads both `localStorage` and `IndexedDB` and adopts whichever copy has the higher sequence count, preventing stale overwrite. |
 | **2026-10-19** | Offline Asset | **Local Bundled Fonts & Web Audio Synth** | No external CDN requests. Poppins fonts bundled as local WOFF2 files. Beeps generated natively via Web Audio API `OscillatorNode`. |
 | **2026-10-20** | UX & Routing | **Home Startup with Active Session Banner & Visible Reset Button** | Cold boot now always opens to Home (Setup) screen with offline notification and displays an Active Session in Progress banner with Resume and 2s-Hold-to-Reset options. Serving dashboard also features a prominent Reset button in header. |
+| **2026-10-20** | Deployment | **GitHub Repository & GitHub Pages Ready** | Initialized repository `dgbenga/tiag-kitchen`, pushed all production code to `main` branch, tuned Service Worker precaching for subpath resilience, and prepared for instant GitHub Pages static hosting. |
 
 ---
 
