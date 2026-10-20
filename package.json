@@ -1,0 +1,18 @@
+{
+  "name": "tiag-kitchen",
+  "version": "1.0.0",
+  "description": "Offline-First Food Service Portion Tracker for TIAG-2026",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "test": "node run_all_tests.js"
+  },
+  "keywords": [
+    "pwa",
+    "offline-first",
+    "kitchen-operations",
+    "portion-tracker"
+  ],
+  "author": "Antigravity Principal Architect",
+  "license": "MIT"
+}

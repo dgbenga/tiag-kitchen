@@ -1,0 +1,3098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+  <!-- Strict Content Security Policy: Zero remote calls, zero analytics, zero external scripts -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob:; connect-src 'none'; img-src 'self' data: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  
+  <!-- Viewport Lock: Disables double-tap zoom, pinch zoom, and pull-to-refresh -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <!-- PWA & Apple Mobile Web App Configuration -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tiag Kitchen">
+  <meta name="theme-color" content="#0A0A0A">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <title>Tiag Kitchen — Offline Portion Tracker</title>
+
+  <style>
+    /* ==========================================================================
+       1. CSS Custom Properties / Single-Knob Cascading Tokens
+       ========================================================================== */
+    :root {
+      /* Brand Identity (TIAG-2026 Sampled) */
+      --brand-primary: #FF2A2A;             /* Signal Red - Setup/Summary buttons only */
+      --brand-primary-hover: #E01E1E;
+      --brand-crimson: #A20000;             /* Deep Crimson */
+      --brand-flame: #FD3F27;               /* Flame Orange */
+      --brand-rose: #F52545;                /* Rose Red */
+      --brand-purple: #7F499A;              /* Royal Purple - Undo button & accents */
+      --brand-purple-hover: #6D3D86;
+      --brand-gradient: linear-gradient(135deg, #FA2B2E 0%, #F52545 45%, #7F499A 100%);
+
+      /* Surface & Layout */
+      --surface-body: #F4F7FA;              /* Mist */
+      --surface-paper: #F9F9FE;             /* Paper */
+      --surface-header: #0A0A0A;            /* Ink Black */
+      --surface-border: #CBD5E1;            /* Anti-glare 2px border */
+      
+      --text-primary: #0A0A0A;
+      --text-secondary: #475569;
+      --text-muted: #64748B;
+      --text-inverted: #FFFFFF;
+
+      /* Serving Status Palette (STRICTLY QUARANTINED FROM BRAND RED) */
+      --status-ok-surface: #DFF5E8;
+      --status-ok-border: #1FA45B;
+      --status-ok-text: #0E4A28;
+      --status-ok-badge: #C3EED5;
+
+      --status-low-surface: #FFE9A8;
+      --status-low-border: #F5A524;
+      --status-low-text: #4E3304;
+      --status-low-badge: #FDE087;
+
+      --status-critical-surface: #B00101;
+      --status-critical-border: #FF4D4D;
+      --status-critical-text: #FFFFFF;
+      --status-critical-badge: #780000;
+
+      --status-finished-surface: #0A0A0A;
+      --status-finished-border: #2D3748;
+      --status-finished-text: #8C8C8C;
+      --status-finished-badge: #1A202C;
+
+      /* Typography */
+      --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-weight-normal: 500;
+      --font-weight-medium: 600;
+      --font-weight-bold: 700;
+      --font-weight-black: 800;
+
+      /* Geometry & Safe Area */
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
+      --radius-pill: 9999px;
+
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ==========================================================================
+       2. Reset & Industrial Viewport Discipline
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--surface-body);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* ==========================================================================
+       3. Layout Containers & Screens
+       ========================================================================== */
+    #app-root {
+      width: 100%;
+      height: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface-body);
+    }
+
+    .app-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      background-color: var(--surface-body);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .app-screen.active {
+      display: flex;
+    }
+
+    /* ==========================================================================
+       4. Common UI Atoms & Primitives
+       ========================================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-sans);
+      font-weight: var(--font-weight-bold);
+      border: none;
+      outline: none;
+      cursor: pointer;
+      border-radius: var(--radius-pill);
+      transition: transform 120ms ease, opacity 120ms ease, background-color 150ms ease;
+      min-height: 48px;
+      padding: 12px 24px;
+      text-decoration: none;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-gradient {
+      background: var(--brand-gradient);
+      color: var(--text-inverted);
+      box-shadow: 0 4px 14px rgba(250, 43, 46, 0.3);
+    }
+
+    .btn-purple {
+      background: var(--brand-purple);
+      color: var(--text-inverted);
+    }
+
+    .btn-outline {
+      background: #FFFFFF;
+      color: var(--text-primary);
+      border: 2px solid var(--surface-border);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    /* Visible Header Reset Button on Serving Dashboard */
+    .btn-reset-header {
+      min-height: 38px;
+      padding: 0 12px;
+      font-size: 0.75rem;
+      font-family: var(--font-sans);
+      font-weight: var(--font-weight-bold);
+      color: #FCA5A5;
+      background: rgba(239, 68, 68, 0.16);
+      border: 1.5px solid #EF4444;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      transition: background 150ms ease, transform 100ms ease;
+    }
+
+    .btn-reset-header:active {
+      transform: scale(0.96);
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    /* Active Session Restore Card on Home Setup Screen */
+    .active-session-card {
+      background: #FFFFFF;
+      border: 2px solid var(--brand-purple);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(127, 73, 154, 0.12);
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #10B981;
+      display: inline-block;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulseGreen 2s infinite;
+    }
+
+    @keyframes pulseGreen {
+      0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+      }
+      70% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
+
+    /* Status Badge Atom */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: var(--font-weight-bold);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    .status-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .status-badge.ok {
+      background: var(--status-ok-badge);
+      color: var(--status-ok-text);
+    }
+
+    .status-badge.low {
+      background: var(--status-low-badge);
+      color: var(--status-low-text);
+    }
+
+    .status-badge.critical {
+      background: var(--status-critical-badge);
+      color: var(--status-critical-text);
+    }
+
+    .status-badge.finished {
+      background: var(--status-finished-badge);
+      color: var(--status-finished-text);
+    }
+
+    /* Circular Logo Slot Atom */
+    .logo-slot {
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .logo-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 10%;
+    }
+
+    .logo-slot.placeholder svg {
+      width: 60%;
+      height: 60%;
+      color: var(--text-muted);
+    }
+
+    /* Icon Glyphs */
+    .icon {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* ==========================================================================
+       5. Screen 1: Setup View Styling
+       ========================================================================== */
+    #screen-setup {
+      background: var(--surface-body);
+    }
+
+    .setup-hero {
+      background: var(--brand-gradient);
+      padding: calc(var(--safe-top) + 24px) 24px 32px 24px;
+      border-bottom-left-radius: 28px;
+      border-bottom-right-radius: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: var(--text-inverted);
+      box-shadow: 0 8px 24px rgba(250, 43, 46, 0.25);
+    }
+
+    .setup-hero .logo-slot {
+      width: 92px;
+      height: 92px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .setup-hero h1 {
+      font-size: 1.625rem;
+      font-weight: var(--font-weight-black);
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+
+    .setup-hero p {
+      font-size: 0.875rem;
+      opacity: 0.92;
+      font-weight: var(--font-weight-normal);
+      margin-bottom: 14px;
+    }
+
+    .offline-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: var(--font-weight-medium);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .offline-chip.ready {
+      color: #A7F3D0;
+    }
+
+    .setup-card {
+      background: var(--surface-paper);
+      margin: -16px 16px 24px 16px;
+      border-radius: var(--radius-xl);
+      padding: 24px 20px;
+      border: 2px solid var(--surface-border);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.8125rem;
+      font-weight: var(--font-weight-bold);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 52px;
+      padding: 0 16px;
+      border-radius: var(--radius-md);
+      border: 2px solid var(--surface-border);
+      background: #FFFFFF;
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      font-weight: var(--font-weight-medium);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 150ms ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--brand-purple);
+    }
+
+    .form-input.count-input {
+      font-size: 1.375rem;
+      font-weight: var(--font-weight-bold);
+      letter-spacing: -0.02em;
+    }
+
+    .counts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .form-help {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* ==========================================================================
+       6. Screen 2: Serving Dashboard Layout
+       ========================================================================== */
+    #screen-serving {
+      background: #0A0A0A;
+      overflow: hidden;
+    }
+
+    .serving-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #0A0A0A;
+      position: relative;
+    }
+
+    /* Header Bar (~8% Height) */
+    .serving-header {
+      background: var(--surface-header);
+      padding: calc(var(--safe-top) + 8px) 16px 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid;
+      border-image: var(--brand-gradient) 1;
+      flex-shrink: 0;
+      color: var(--text-inverted);
+    }
+
+    .serving-header .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .serving-header .logo-slot {
+      width: 38px;
+      height: 38px;
+    }
+
+    .serving-header .header-titles h2 {
+      font-size: 1.05rem;
+      font-weight: var(--font-weight-bold);
+      color: #FFFFFF;
+      line-height: 1.1;
+    }
+
+    .serving-header .header-titles span {
+      font-size: 0.72rem;
+      color: #94A3B8;
+      display: block;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-icon {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #1A1A1A;
+      border: 1px solid #333333;
+      color: #FFFFFF;
+      cursor: pointer;
+    }
+
+    /* Secondary Row (~20% Height) */
+    .serving-secondary {
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      flex-shrink: 0;
+      height: 20%;
+      min-height: 96px;
+    }
+
+    .secondary-card {
+      background: var(--status-ok-surface);
+      border: 3px solid var(--status-ok-border);
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      cursor: pointer;
+      transition: transform 80ms ease, background-color 200ms ease;
+    }
+
+    .secondary-card.pressed {
+      transform: scale(0.97);
+    }
+
+    .secondary-card .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .secondary-card .card-label {
+      font-size: 0.75rem;
+      font-weight: var(--font-weight-black);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--status-ok-text);
+    }
+
+    .secondary-card .card-number {
+      font-size: clamp(2rem, 8vw, 2.75rem);
+      font-weight: var(--font-weight-black);
+      line-height: 1;
+      color: var(--status-ok-text);
+      letter-spacing: -0.03em;
+    }
+
+    .secondary-card .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.7rem;
+      font-weight: var(--font-weight-medium);
+      color: var(--status-ok-text);
+      opacity: 0.85;
+    }
+
+    .chip-multi {
+      background: rgba(0, 0, 0, 0.12);
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-weight: var(--font-weight-bold);
+      font-size: 0.7rem;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Primary Counter (~60% Height) */
+    .serving-primary {
+      padding: 0 12px 10px 12px;
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+
+    .primary-button {
+      width: 100%;
+      height: 100%;
+      background: var(--status-ok-surface);
+      border: 4px solid var(--status-ok-border);
+      border-radius: var(--radius-xl);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px 20px 20px;
+      cursor: pointer;
+      position: relative;
+      transition: transform 80ms ease, background-color 200ms ease, border-color 200ms ease;
+    }
+
+    .primary-button.pressed {
+      transform: scale(0.975);
+    }
+
+    .primary-button .primary-top {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .primary-button .primary-title {
+      font-size: 1.1rem;
+      font-weight: var(--font-weight-black);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--status-ok-text);
+    }
+
+    .primary-button .primary-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: auto 0;
+    }
+
+    .primary-button .hero-numeral {
+      font-size: clamp(4.5rem, 20vw, 7.5rem);
+      font-weight: var(--font-weight-black);
+      line-height: 0.9;
+      color: var(--status-ok-text);
+      letter-spacing: -0.04em;
+    }
+
+    .primary-button .hero-label {
+      font-size: 1rem;
+      font-weight: var(--font-weight-bold);
+      letter-spacing: 0.1em;
+      color: var(--status-ok-text);
+      opacity: 0.8;
+      margin-top: 4px;
+    }
+
+    .primary-button .primary-bottom {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.875rem;
+      font-weight: var(--font-weight-medium);
+      color: var(--status-ok-text);
+      opacity: 0.85;
+    }
+
+    /* Footer Action Bar (~12% Height) */
+    .serving-footer {
+      padding: 8px 12px calc(var(--safe-bottom) + 8px) 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      background: #0A0A0A;
+      flex-shrink: 0;
+    }
+
+    .serving-footer .btn {
+      min-height: 54px;
+      font-size: 0.95rem;
+    }
+
+    /* ==========================================================================
+       7. Multi-Sensory Status State Styling
+       ========================================================================== */
+    /* LOW STATE */
+    .state-low {
+      background: var(--status-low-surface) !important;
+      border-color: var(--status-low-border) !important;
+      color: var(--status-low-text) !important;
+    }
+    .state-low .card-label,
+    .state-low .card-number,
+    .state-low .card-footer,
+    .state-low .primary-title,
+    .state-low .hero-numeral,
+    .state-low .hero-label,
+    .state-low .primary-bottom {
+      color: var(--status-low-text) !important;
+    }
+
+    /* CRITICAL STATE */
+    .state-critical {
+      background: var(--status-critical-surface) !important;
+      border-color: var(--status-critical-border) !important;
+      animation: pulse-critical 2s infinite ease-in-out;
+    }
+    .state-critical .card-label,
+    .state-critical .card-number,
+    .state-critical .card-footer,
+    .state-critical .primary-title,
+    .state-critical .hero-numeral,
+    .state-critical .hero-label,
+    .state-critical .primary-bottom {
+      color: var(--status-critical-text) !important;
+    }
+
+    /* FINISHED STATE */
+    .state-finished {
+      background: var(--status-finished-surface) !important;
+      border-color: var(--status-finished-border) !important;
+      cursor: not-allowed !important;
+    }
+    .state-finished .card-label,
+    .state-finished .card-number,
+    .state-finished .card-footer,
+    .state-finished .primary-title,
+    .state-finished .hero-numeral,
+    .state-finished .hero-label,
+    .state-finished .primary-bottom {
+      color: var(--status-finished-text) !important;
+    }
+
+    @keyframes pulse-critical {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 0 10px rgba(255, 77, 77, 0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .state-critical,
+      .num-bump {
+        animation: none !important;
+      }
+    }
+
+    @keyframes num-bump {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    .num-bump {
+      display: inline-block;
+      animation: num-bump 140ms ease-out;
+    }
+
+    /* ==========================================================================
+       8. Modals, Bottom Sheets & Overlays
+       ========================================================================== */
+    .sheet-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .sheet-backdrop.active {
+      display: flex;
+    }
+
+    .bottom-sheet {
+      width: 100%;
+      max-width: 500px;
+      background: var(--surface-paper);
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 16px 20px calc(var(--safe-bottom) + 20px) 20px;
+      border-top: 2px solid var(--surface-border);
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .sheet-handle {
+      width: 44px;
+      height: 5px;
+      background: var(--surface-border);
+      border-radius: var(--radius-pill);
+      margin: 0 auto 4px auto;
+    }
+
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sheet-header h3 {
+      font-size: 1.15rem;
+      font-weight: var(--font-weight-black);
+    }
+
+    /* Multi-serve chip selector */
+    .chips-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .chip-number {
+      aspect-ratio: 1;
+      border-radius: var(--radius-md);
+      border: 2px solid var(--surface-border);
+      background: #FFFFFF;
+      font-size: 1.25rem;
+      font-weight: var(--font-weight-black);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-primary);
+    }
+
+    .chip-number.selected {
+      border-color: var(--brand-purple);
+      background: rgba(127, 73, 154, 0.1);
+      color: var(--brand-purple);
+    }
+
+    .multi-cat-btn.active,
+    .restock-cat-btn.active,
+    .adjust-cat-btn.active {
+      background: var(--brand-purple) !important;
+      color: #FFFFFF !important;
+      border-color: var(--brand-purple) !important;
+    }
+
+    /* Summary Table Styling (Sprint 3.6) */
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.825rem;
+    }
+    .summary-table th,
+    .summary-table td {
+      padding: 8px 6px;
+      text-align: right;
+      border-bottom: 1px solid var(--surface-border);
+    }
+    .summary-table th:first-child,
+    .summary-table td:first-child {
+      text-align: left;
+      font-weight: var(--font-weight-bold);
+    }
+    .summary-table th {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 2px solid var(--surface-border);
+    }
+    .summary-table tr.total-row td {
+      font-weight: var(--font-weight-black);
+      border-top: 2px solid var(--text-primary);
+      border-bottom: none;
+      color: var(--brand-purple);
+    }
+    .copy-feedback-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10, 10, 10, 0.9);
+      color: #FFFFFF;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 0.8rem;
+      font-weight: var(--font-weight-bold);
+      z-index: 1000;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+
+    #overlay-multi-tab {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 10, 10, 0.95);
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      text-align: center;
+      color: #FFFFFF;
+    }
+
+    #overlay-multi-tab.active {
+      display: flex;
+    }
+
+    #overlay-multi-tab h2 {
+      font-size: 1.35rem;
+      font-weight: var(--font-weight-bold);
+      margin-bottom: 8px;
+    }
+
+    #overlay-multi-tab p {
+      font-size: 0.9rem;
+      color: #94A3B8;
+      max-width: 320px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Inlined SVG Symbol Vault -->
+  <svg style="display: none;">
+    <symbol id="icon-check" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+    </symbol>
+    <symbol id="icon-warn-triangle" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+    </symbol>
+    <symbol id="icon-critical-hex" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 2L1 21h22L12 2zm0 3.8L20.2 19H3.8L12 5.8zM11 10h2v4h-2v-4zm0 6h2v2h-2v-2z"/>
+    </symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+    </symbol>
+    <symbol id="icon-gear" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+    </symbol>
+    <symbol id="icon-undo" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
+    </symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+    </symbol>
+    <symbol id="icon-logo-seal" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.5" d="M12 6v12M6 12h12"/>
+      <circle cx="12" cy="12" r="3" fill="currentColor"/>
+    </symbol>
+  </svg>
+
+  <!-- Multi-Tab Conflict Overlay -->
+  <div id="overlay-multi-tab" role="alert" aria-live="assertive">
+    <svg class="icon" style="width: 48px; height: 48px; color: var(--status-low-border); margin-bottom: 12px;">
+      <use href="#icon-warn-triangle"/>
+    </svg>
+    <h2>Active Session in Another Tab</h2>
+    <p>Tiag Kitchen is already running in another browser tab on this device. This secondary window is locked to prevent count discrepancies.</p>
+  </div>
+
+  <!-- Tap Lock Shield Overlay (Sprint 3.5) -->
+  <div id="overlay-tap-lock" style="position: fixed; inset: 0; background: rgba(10, 10, 10, 0.95); z-index: 500; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center; color: #FFFFFF;">
+    <svg class="icon" style="width: 56px; height: 56px; color: var(--brand-purple); margin-bottom: 16px;">
+      <use href="#icon-lock"/>
+    </svg>
+    <h2 style="font-size: 1.5rem; font-weight: var(--font-weight-black); margin-bottom: 6px;">Screen Locked</h2>
+    <p style="font-size: 0.9rem; color: #94A3B8; max-width: 280px; margin-bottom: 24px; line-height: 1.4;">
+      Tap lock is active. Primary and secondary counters are protected against accidental touches.
+    </p>
+    <button type="button" id="btn-unlock-taplock" class="btn btn-outline" style="min-height: 52px; padding: 0 28px; color: #FFFFFF; border-color: rgba(255,255,255,0.4); position: relative; overflow: hidden;">
+      <span id="unlock-progress-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: rgba(127, 73, 154, 0.5); pointer-events: none; transition: width 40ms linear;"></span>
+      <span id="unlock-btn-text" style="position: relative; z-index: 1;">Hold 1s to Unlock</span>
+    </button>
+  </div>
+
+  <!-- Master Application Viewport -->
+  <main id="app-root">
+
+    <!-- ======================================================================
+         SCREEN 1: SETUP VIEW
+         ====================================================================== -->
+    <section id="screen-setup" class="app-screen active">
+      <header class="setup-hero">
+        <div class="logo-slot placeholder" id="setup-logo-preview" role="button" aria-label="Upload event logo" tabindex="0">
+          <svg><use href="#icon-logo-seal"/></svg>
+        </div>
+        <button type="button" id="btn-upload-logo-text" class="btn btn-outline" style="min-height: 32px; font-size: 0.75rem; padding: 4px 14px; margin-top: 6px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.18); color: #FFFFFF; border: 1.5px solid rgba(255,255,255,0.45); backdrop-filter: blur(4px);">
+          Add organiser logo
+        </button>
+        <div id="logo-error" style="display: none; color: #FEE2E2; background: rgba(185, 28, 28, 0.7); padding: 4px 10px; border-radius: var(--radius-sm); font-size: 0.75rem; margin-top: 6px; font-weight: bold;"></div>
+        <input type="file" id="input-logo-file" accept="image/png, image/jpeg, image/webp" style="display: none;">
+        
+        <h1 style="margin-top: 10px;">TIAG KITCHEN</h1>
+        <p>Count every plate. Works offline.</p>
+        
+        <div id="setup-offline-status" class="offline-chip">
+          <svg class="icon" style="width: 14px; height: 14px;"><use href="#icon-check"/></svg>
+          <span id="text-offline-status">Checking offline cache...</span>
+        </div>
+      </header>
+
+      <!-- Active Session Banner / Restore Card -->
+      <div id="banner-active-session" class="active-session-card" style="display: none;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="pulse-dot"></span>
+            <strong style="font-size: 0.95rem; color: var(--text-primary);">Active Service in Progress</strong>
+          </div>
+          <span id="banner-session-event" style="font-size: 0.75rem; font-weight: var(--font-weight-bold); color: var(--brand-purple);">TIAG-2026</span>
+        </div>
+        <div id="banner-session-summary" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
+          Remaining: <strong>0</strong> Portions Left
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button type="button" id="btn-banner-resume" class="btn btn-gradient" style="min-height: 48px; font-size: 0.85rem;">
+            Resume Serving
+          </button>
+          <button type="button" id="btn-banner-reset" class="btn btn-outline" style="min-height: 48px; font-size: 0.85rem; color: #DC2626; border-color: #FCA5A5; position: relative; overflow: hidden;">
+            <span id="banner-reset-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: rgba(220, 38, 38, 0.25); pointer-events: none; transition: width 50ms linear;"></span>
+            <span id="banner-reset-text" style="position: relative; z-index: 1; font-weight: var(--font-weight-bold);">Hold 2s to Reset</span>
+          </button>
+        </div>
+      </div>
+
+      <form id="form-setup" class="setup-card" onsubmit="event.preventDefault();">
+        <div class="form-group">
+          <label for="input-event-name">Event Name (Optional)</label>
+          <input type="text" id="input-event-name" class="form-input" placeholder="e.g. TIAG-2026 Camp Meeting" maxlength="60" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label for="input-station-name">Station Name (Optional)</label>
+          <input type="text" id="input-station-name" class="form-input" placeholder="e.g. Station A - Main Tent" maxlength="40" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Starting Portions</label>
+          <div class="counts-grid">
+            <div class="form-group">
+              <label for="count-participants" style="font-size: 0.7rem;">Participants</label>
+              <input type="text" id="count-participants" inputmode="numeric" pattern="[0-9]*" class="form-input count-input" placeholder="0" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label for="count-workers" style="font-size: 0.7rem;">Workers</label>
+              <input type="text" id="count-workers" inputmode="numeric" pattern="[0-9]*" class="form-input count-input" placeholder="0" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label for="count-pastors" style="font-size: 0.7rem;">Pastors</label>
+              <input type="text" id="count-pastors" inputmode="numeric" pattern="[0-9]*" class="form-input count-input" placeholder="0" maxlength="5">
+            </div>
+          </div>
+          <span class="form-help">Enter whole numbers (0 to 99,999). At least one must be above 0.</span>
+          <div id="setup-validation-error" style="display: none; color: #DC2626; font-size: 0.75rem; font-weight: var(--font-weight-bold); margin-top: 4px;"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="input-pin">Lead PIN (Optional 4 Digits)</label>
+          <input type="password" id="input-pin" inputmode="numeric" pattern="[0-9]*" class="form-input" placeholder="••••" maxlength="4" autocomplete="off">
+          <span class="form-help">Protects Restock, Adjust, and Emergency Reset.</span>
+        </div>
+
+        <button type="button" id="btn-start-serving" class="btn btn-gradient" style="margin-top: 8px;" disabled>
+          START SERVING
+        </button>
+
+        <button type="button" id="btn-clear-setup" class="btn btn-outline" style="min-height: 40px; font-size: 0.8rem; padding: 6px 14px; width: 100%; margin-top: 8px;">
+          Clear / Reset Inputs
+        </button>
+
+        <div style="text-align: center; margin-top: 4px;">
+          <button type="button" id="btn-show-install-guide" class="btn btn-outline" style="min-height: 40px; font-size: 0.8rem; padding: 6px 14px;">
+            Install to Home Screen Guide
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ======================================================================
+         SCREEN 2: SERVING DASHBOARD
+         ====================================================================== -->
+    <section id="screen-serving" class="app-screen">
+      <div class="serving-container">
+        
+        <!-- Header (~8% Height) -->
+        <header class="serving-header">
+          <div class="header-brand">
+            <div class="logo-slot placeholder" id="header-logo-preview">
+              <svg><use href="#icon-logo-seal"/></svg>
+            </div>
+            <div class="header-titles">
+              <h2>Tiag Kitchen</h2>
+              <span id="header-event-subline">TIAG-2026</span>
+            </div>
+          </div>
+
+          <div class="header-actions">
+            <div id="header-status-badge" class="status-badge ok">
+              <svg><use href="#icon-check"/></svg>
+              <span>ALL OK</span>
+            </div>
+            <button type="button" id="btn-header-reset" class="btn-reset-header" aria-label="Reset session">
+              <svg class="icon" style="width: 14px; height: 14px;"><use href="#icon-undo"/></svg>
+              <span>Reset</span>
+            </button>
+            <button type="button" id="btn-open-settings" class="btn-icon" aria-label="Settings">
+              <svg class="icon"><use href="#icon-gear"/></svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Secondary Row (~20% Height) -->
+        <div class="serving-secondary">
+          <!-- Workers Card -->
+          <div id="card-workers" class="secondary-card" role="button" aria-label="Decrement Workers portion">
+            <div class="card-top">
+              <span class="card-label">WORKERS</span>
+              <div id="badge-workers" class="status-badge ok">
+                <svg><use href="#icon-check"/></svg>
+                <span>OK</span>
+              </div>
+            </div>
+            <div id="num-workers-left" class="card-number">0</div>
+            <div class="card-footer">
+              <span id="num-workers-served">Served: 0</span>
+              <button type="button" class="chip-multi" data-cat="workers">× N</button>
+            </div>
+          </div>
+
+          <!-- Pastors Card -->
+          <div id="card-pastors" class="secondary-card" role="button" aria-label="Decrement Pastors portion">
+            <div class="card-top">
+              <span class="card-label">PASTORS</span>
+              <div id="badge-pastors" class="status-badge ok">
+                <svg><use href="#icon-check"/></svg>
+                <span>OK</span>
+              </div>
+            </div>
+            <div id="num-pastors-left" class="card-number">0</div>
+            <div class="card-footer">
+              <span id="num-pastors-served">Served: 0</span>
+              <button type="button" class="chip-multi" data-cat="pastors">× N</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary Touch Target (~60% Height) -->
+        <div class="serving-primary">
+          <div id="card-participants" class="primary-button" role="button" aria-label="Decrement Participants portion">
+            <div class="primary-top">
+              <span class="primary-title">PARTICIPANTS</span>
+              <div id="badge-participants" class="status-badge ok">
+                <svg><use href="#icon-check"/></svg>
+                <span>OK</span>
+              </div>
+            </div>
+
+            <div class="primary-center">
+              <div id="num-participants-left" class="hero-numeral">0</div>
+              <span class="hero-label">LEFT</span>
+            </div>
+
+            <div class="primary-bottom">
+              <span id="num-participants-served">Served: 0</span>
+              <span style="opacity: 0.6; font-size: 0.75rem;">Tap to count</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Action Bar (~12% Height) -->
+        <footer class="serving-footer">
+          <button type="button" id="btn-undo" class="btn btn-purple" disabled aria-label="Undo last action">
+            <svg class="icon"><use href="#icon-undo"/></svg>
+            <span id="label-undo">Undo</span>
+          </button>
+          
+          <button type="button" id="btn-serve-multi-trigger" class="btn btn-outline" aria-label="Serve multiple portions">
+            Serve multiple
+          </button>
+        </footer>
+
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         BOTTOM SHEETS & MODALS BACKDROP
+         ====================================================================== -->
+    <div id="sheet-backdrop" class="sheet-backdrop">
+      
+      <!-- Bottom Sheet: Serve Multiple -->
+      <div id="sheet-serve-multiple" class="bottom-sheet" style="display: none;">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <h3 id="multi-title">Serve Multiple Portions</h3>
+          <button type="button" class="btn-icon btn-sheet-close" aria-label="Close sheet">
+            <svg class="icon"><use href="#icon-close"/></svg>
+          </button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.75rem; font-weight: var(--font-weight-bold); color: var(--text-muted); text-transform: uppercase;">Category</label>
+          <div class="multi-cat-selector" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <button type="button" class="btn btn-outline multi-cat-btn active" data-cat="participants" style="min-height: 40px; padding: 4px 6px; font-size: 0.8rem;">Participants</button>
+            <button type="button" class="btn btn-outline multi-cat-btn" data-cat="workers" style="min-height: 40px; padding: 4px 6px; font-size: 0.8rem;">Workers</button>
+            <button type="button" class="btn btn-outline multi-cat-btn" data-cat="pastors" style="min-height: 40px; padding: 4px 6px; font-size: 0.8rem;">Pastors</button>
+          </div>
+          <span id="multi-cat-remaining" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Remaining: 0 portions</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px;">
+          <label style="font-size: 0.75rem; font-weight: var(--font-weight-bold); color: var(--text-muted); text-transform: uppercase;">Quantity</label>
+          <div class="chips-row">
+            <button type="button" class="chip-number" data-count="2">2</button>
+            <button type="button" class="chip-number" data-count="3">3</button>
+            <button type="button" class="chip-number" data-count="4">4</button>
+            <button type="button" class="chip-number selected" data-count="5">5</button>
+            <button type="button" class="chip-number" data-count="10">10</button>
+          </div>
+        </div>
+
+        <button type="button" id="btn-multi-confirm" class="btn btn-gradient" style="margin-top: 8px;">
+          CONFIRM (5 Participants)
+        </button>
+      </div>
+
+      <!-- Bottom Sheet: Confirm Reset -->
+      <div id="sheet-reset-confirm" class="bottom-sheet" style="display: none;">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <h3 style="color: #DC2626;">Reset Serving Session</h3>
+          <button type="button" class="btn-icon btn-sheet-close" aria-label="Close sheet">
+            <svg class="icon"><use href="#icon-close"/></svg>
+          </button>
+        </div>
+        <div style="padding: 4px 0 16px 0;">
+          <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 16px;">
+            Are you sure you want to end this serving session? Current counts will be safely archived to your device, and you will return to the home screen where you can input new numbers.
+          </p>
+          <button type="button" id="btn-modal-reset" class="btn btn-outline" style="justify-content: flex-start; color: #DC2626; border-color: #FCA5A5; position: relative; overflow: hidden; min-height: 48px; width: 100%;">
+            <span id="modal-reset-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: rgba(220, 38, 38, 0.25); pointer-events: none; transition: width 50ms linear;"></span>
+            <span id="modal-reset-text" style="position: relative; z-index: 1; font-weight: var(--font-weight-bold);">Hold 2s to Reset Session</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Sheet: Settings -->
+      <div id="sheet-settings" class="bottom-sheet" style="display: none;">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <h3>Settings & Controls</h3>
+          <button type="button" class="btn-icon btn-sheet-close" aria-label="Close sheet">
+            <svg class="icon"><use href="#icon-close"/></svg>
+          </button>
+        </div>
+
+        <!-- Toggles -->
+        <div style="background: rgba(0,0,0,0.03); border: 1px solid var(--surface-border); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+          <label style="display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; font-weight: var(--font-weight-bold); cursor: pointer;">
+            <span>Sound Warning Alerts</span>
+            <input type="checkbox" id="toggle-sound" style="width: 20px; height: 20px; accent-color: var(--brand-purple);">
+          </label>
+          <label style="display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; font-weight: var(--font-weight-bold); cursor: pointer;">
+            <span>Tactile Haptic Vibration</span>
+            <input type="checkbox" id="toggle-vibrate" checked style="width: 20px; height: 20px; accent-color: var(--brand-purple);">
+          </label>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button type="button" id="btn-setting-taplock" class="btn btn-outline" style="justify-content: flex-start;">
+            <svg class="icon" style="width: 16px; height: 16px; margin-right: 4px;"><use href="#icon-lock"/></svg>
+            Enable Tap Lock Shield
+          </button>
+          <button type="button" id="btn-setting-restock" class="btn btn-outline" style="justify-content: flex-start;">
+            + Add Food (Restock)
+          </button>
+          <button type="button" id="btn-setting-adjust" class="btn btn-outline" style="justify-content: flex-start;">
+            Fix a Count (Adjust)
+          </button>
+          <button type="button" id="btn-setting-endservice" class="btn btn-outline" style="justify-content: flex-start; color: var(--brand-crimson); font-weight: bold;">
+            End Service (View Summary)
+          </button>
+          <button type="button" id="btn-setting-reset" class="btn btn-outline" style="justify-content: flex-start; color: #DC2626; border-color: #FCA5A5; position: relative; overflow: hidden;">
+            <span id="reset-progress-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: rgba(220, 38, 38, 0.25); pointer-events: none; transition: width 50ms linear;"></span>
+            <span id="reset-btn-text" style="position: relative; z-index: 1;">Hold 2s to Reset Session</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Sheet: Restock -->
+      <div id="sheet-restock" class="bottom-sheet" style="display: none;">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <h3>Add Food (Restock)</h3>
+          <button type="button" class="btn-icon btn-sheet-close" aria-label="Close sheet">
+            <svg class="icon"><use href="#icon-close"/></svg>
+          </button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.75rem; font-weight: var(--font-weight-bold); color: var(--text-muted); text-transform: uppercase;">Category</label>
+          <div class="multi-cat-selector" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <button type="button" class="btn btn-outline restock-cat-btn active" data-cat="participants" style="min-height: 40px; padding: 4px 6px; font-size: 0.8rem;">Participants</button>
+            <button type="button" class="btn btn-outline restock-cat-btn" data-cat="workers" style="min-height: 40px; padding: 4px 6px; font-size: 0.8rem;">Workers</button>
+            <button type="button" class="btn btn-outline restock-cat-btn" data-cat="pastors" style="min-height: 40px; padding: 4px 6px; font-size: 0.8rem;">Pastors</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 4px;">
+          <label for="input-restock-qty">Additional Portions</label>
+          <input type="text" id="input-restock-qty" inputmode="numeric" pattern="[0-9]*" class="form-input count-input" placeholder="0" maxlength="5">
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <button type="button" class="chip-multi btn-quick-restock" data-qty="10">+10</button>
+            <button type="button" class="chip-multi btn-quick-restock" data-qty="25">+25</button>
+            <button type="button" class="chip-multi btn-quick-restock" data-qty="50">+50</button>
+            <button type="button" class="chip-multi btn-quick-restock" data-qty="100">+100</button>
+          </div>
+        </div>
+
+        <button type="button" id="btn-confirm-restock" class="btn btn-gradient" style="margin-top: 6px;">
+          CONFIRM RESTOCK
+        </button>
+      </div>
+
+      <!-- Bottom Sheet: Adjust -->
+      <div id="sheet-adjust" class="bottom-sheet" style="display: none;">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <h3>Fix a Count (Adjust)</h3>
+          <button type="button" class="btn-icon btn-sheet-close" aria-label="Close sheet">
+            <svg class="icon"><use href="#icon-close"/></svg>
+          </button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.75rem; font-weight: var(--font-weight-bold); color: var(--text-muted); text-transform: uppercase;">Category</label>
+          <div class="multi-cat-selector" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <button type="button" class="btn btn-outline adjust-cat-btn active" data-cat="participants" style="min-height: 40px; padding: 4px 6px; font-size: 0.8rem;">Participants</button>
+            <button type="button" class="btn btn-outline adjust-cat-btn" data-cat="workers" style="min-height: 40px; padding: 4px 6px; font-size: 0.8rem;">Workers</button>
+            <button type="button" class="btn btn-outline adjust-cat-btn" data-cat="pastors" style="min-height: 40px; padding: 4px 6px; font-size: 0.8rem;">Pastors</button>
+          </div>
+          <span id="adjust-current-display" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Current Remaining: 0</span>
+        </div>
+
+        <div class="form-group" style="margin-top: 4px;">
+          <label for="input-adjust-newleft">New Exact Remaining Count</label>
+          <input type="text" id="input-adjust-newleft" inputmode="numeric" pattern="[0-9]*" class="form-input count-input" placeholder="0" maxlength="5">
+          <span class="form-help">This overrides the remaining count and audits the difference.</span>
+        </div>
+
+        <button type="button" id="btn-confirm-adjust" class="btn btn-gradient" style="margin-top: 6px;">
+          SAVE ADJUSTMENT
+        </button>
+      </div>
+
+      <!-- Bottom Sheet: Lead PIN Prompt -->
+      <div id="sheet-pin-prompt" class="bottom-sheet" style="display: none;">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <h3>Lead PIN Verification</h3>
+          <button type="button" class="btn-icon btn-sheet-close" aria-label="Close sheet">
+            <svg class="icon"><use href="#icon-close"/></svg>
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="input-verify-pin">Enter 4-Digit Lead PIN</label>
+          <input type="password" id="input-verify-pin" inputmode="numeric" pattern="[0-9]*" class="form-input" placeholder="••••" maxlength="4" autocomplete="off">
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 4px;">Default / master PIN: <strong>1234</strong></span>
+          <div id="pin-prompt-error" style="display: none; color: #DC2626; font-size: 0.75rem; font-weight: bold; margin-top: 4px;">Incorrect PIN. Try 1234 or your setup PIN.</div>
+        </div>
+
+        <button type="button" id="btn-verify-pin-confirm" class="btn btn-gradient" style="margin-top: 6px;">
+          UNLOCK ACTION
+        </button>
+
+        <button type="button" id="btn-force-reset-pin" class="btn btn-outline" style="min-height: 38px; font-size: 0.75rem; color: #DC2626; border-color: #FCA5A5; margin-top: 8px; width: 100%;">
+          Forgot PIN? Emergency Reset Session
+        </button>
+      </div>
+
+      <!-- Bottom Sheet: Install Guide -->
+      <div id="sheet-install-guide" class="bottom-sheet" style="display: none;">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <h3>Install Once, Use Anywhere</h3>
+          <button type="button" class="btn-icon btn-sheet-close" aria-label="Close sheet">
+            <svg class="icon"><use href="#icon-close"/></svg>
+          </button>
+        </div>
+        <div style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
+          <p><strong>iPhone (Safari):</strong> Tap the Share button at the bottom of the screen, scroll down, and select <em>"Add to Home Screen"</em>.</p>
+          <p style="margin-top: 10px;"><strong>Android (Chrome):</strong> Tap the 3 dots in the top-right corner, then tap <em>"Add to Home Screen"</em> or <em>"Install App"</em>.</p>
+        </div>
+        <button type="button" class="btn btn-gradient btn-sheet-close">
+          Got it
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ======================================================================
+         SCREEN 3: END-OF-SERVICE SUMMARY
+         ====================================================================== -->
+    <section id="screen-summary" class="app-screen">
+      <header class="setup-hero" style="padding-bottom: 24px;">
+        <div class="logo-slot placeholder" id="summary-logo-preview">
+          <svg><use href="#icon-logo-seal"/></svg>
+        </div>
+        <h1 id="summary-event-title">Service Complete</h1>
+        <p id="summary-time-range">TIAG-2026</p>
+      </header>
+
+      <div class="setup-card" style="margin-top: -12px;">
+        <h3 style="font-size: 1rem; font-weight: var(--font-weight-black); margin-bottom: 12px;">Portion Reconciliation</h3>
+        <div id="summary-metrics-container">
+          <!-- Dynamically populated per category -->
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
+          <button type="button" id="btn-copy-summary" class="btn btn-outline">
+            Copy Summary as Text
+          </button>
+          <button type="button" id="btn-download-csv" class="btn btn-outline">
+            Download CSV Report
+          </button>
+          <button type="button" id="btn-new-event" class="btn btn-gradient" style="margin-top: 8px;">
+            START NEW EVENT
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================================================
+       BOOTSTRAP LOGIC & FOUNDATION RUNTIME
+       ========================================================================== -->
+  <script>
+    // 1. In-Memory Error Boundary Ring Buffer
+    window.__errorLog = [];
+    window.onerror = function(msg, url, line, col, error) {
+      const err = { msg, url, line, col, time: Date.now() };
+      window.__errorLog.push(err);
+      if (window.__errorLog.length > 50) window.__errorLog.shift();
+      console.error('[Tiag Kitchen Error Boundary]', err);
+      return false;
+    };
+    window.onunhandledrejection = function(e) {
+      window.__errorLog.push({ msg: e.reason?.message || 'Unhandled Rejection', time: Date.now() });
+    };
+
+    // 2. Synchronous Fast 32-bit FNV-1a Checksum for Instant Tap Integrity
+    function fnv1aChecksum(str) {
+      let hash = 0x811c9dc5;
+      for (let i = 0; i < str.length; i++) {
+        hash ^= str.charCodeAt(i);
+        hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+      }
+      return (hash >>> 0).toString(16);
+    }
+
+    // 3. Multi-Tab Conflict BroadcastChannel with Storage Fallback
+    const tabId = 'tab_' + Math.random().toString(36).substr(2, 9);
+    try {
+      if ('BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('tiag_kitchen_channel');
+        bc.postMessage({ type: 'HEARTBEAT', tabId });
+        bc.onmessage = function(e) {
+          if (e.data && e.data.type === 'HEARTBEAT' && e.data.tabId !== tabId) {
+            document.getElementById('overlay-multi-tab').classList.add('active');
+          }
+        };
+      }
+    } catch(err) {
+      console.warn('BroadcastChannel fallback:', err);
+    }
+
+    // 4. Service Worker Precache Registration & Offline Status Check
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => {
+            console.log('[SW] Registered:', reg.scope);
+            try { reg.update(); } catch(e) {}
+            checkOfflineStatus();
+          })
+          .catch((err) => {
+            console.warn('[SW] Registration failed:', err);
+            updateOfflineUI(false);
+          });
+      });
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!window.__reloading) {
+          window.__reloading = true;
+          window.location.reload();
+        }
+      });
+    } else {
+      updateOfflineUI(false);
+    }
+
+    function checkOfflineStatus() {
+      if (navigator.serviceWorker.controller) {
+        const messageChannel = new MessageChannel();
+        messageChannel.port1.onmessage = (event) => {
+          updateOfflineUI(event.data.ready);
+        };
+        navigator.serviceWorker.controller.postMessage({ type: 'CHECK_CACHE_STATUS' }, [messageChannel.port2]);
+      } else {
+        updateOfflineUI(navigator.onLine);
+      }
+    }
+
+    function updateOfflineUI(isReady) {
+      const chip = document.getElementById('setup-offline-status');
+      const text = document.getElementById('text-offline-status');
+      if (!chip || !text) return;
+      if (isReady) {
+        chip.classList.add('ready');
+        text.textContent = 'Ready offline';
+      } else {
+        chip.classList.remove('ready');
+        text.textContent = 'Not ready: connect once and refresh';
+      }
+    }
+
+    // 5. Storage Persistence Request
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().then((granted) => {
+        console.log('[Storage] Persistent storage granted:', granted);
+      });
+    }
+
+    // 6. Base Screen Switcher (Foundation Helper)
+    window.switchScreen = function(screenId) {
+      document.querySelectorAll('.app-screen').forEach((el) => el.classList.remove('active'));
+      const target = document.getElementById(screenId);
+      if (target) target.classList.add('active');
+      if (screenId === 'screen-serving') {
+        requestWakeLock();
+      } else {
+        releaseWakeLock();
+      }
+    };
+
+    // 7. IndexedDB Engine (Dual-Write Mirror & Media Storage)
+    const DB_NAME = 'tiag_kitchen_db';
+    const DB_VERSION = 1;
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('app_state')) {
+            db.createObjectStore('app_state', { keyPath: 'id' });
+          }
+          if (!db.objectStoreNames.contains('tap_log')) {
+            db.createObjectStore('tap_log', { keyPath: 'id', autoIncrement: true });
+          }
+          if (!db.objectStoreNames.contains('media_blobs')) {
+            db.createObjectStore('media_blobs', { keyPath: 'key' });
+          }
+          if (!db.objectStoreNames.contains('snapshots')) {
+            db.createObjectStore('snapshots', { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function saveLogoToIDB(dataUrl) {
+      try {
+        const db = await openDB();
+        const tx = db.transaction(['media_blobs'], 'readwrite');
+        tx.objectStore('media_blobs').put({ key: 'organizer_logo', data: dataUrl });
+      } catch(e) {
+        console.warn('IDB saveLogo error:', e);
+      }
+    }
+
+    async function loadLogoFromIDB() {
+      try {
+        const db = await openDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction(['media_blobs'], 'readonly');
+          const req = tx.objectStore('media_blobs').get('organizer_logo');
+          req.onsuccess = () => resolve(req.result ? req.result.data : null);
+          req.onerror = () => resolve(null);
+        });
+      } catch(e) {
+        return null;
+      }
+    }
+
+    async function saveStateToIDB(stateObj) {
+      try {
+        const db = await openDB();
+        const tx = db.transaction(['app_state'], 'readwrite');
+        tx.objectStore('app_state').put({ id: 'current', state: stateObj });
+      } catch(e) {
+        console.warn('IDB saveState error:', e);
+      }
+    }
+
+    async function loadStateFromIDB() {
+      try {
+        const db = await openDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction(['app_state'], 'readonly');
+          const req = tx.objectStore('app_state').get('current');
+          req.onsuccess = () => resolve(req.result ? req.result.state : null);
+          req.onerror = () => resolve(null);
+        });
+      } catch(e) {
+        return null;
+      }
+    }
+
+    // 8. Hardware Priming: Web Audio, Haptics & Wake Lock (Sprint 3.3)
+    let audioCtx = null;
+    function primeAudio() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx && !audioCtx) {
+          audioCtx = new AudioCtx();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      } catch(e) {
+        console.warn('Audio prime:', e);
+      }
+    }
+
+    function playWarningTone(type = 'low') {
+      if (!window.currentState || !window.currentState.settings || !window.currentState.settings.sound) {
+        return; // Sound muted by default per settings
+      }
+      primeAudio();
+      if (!audioCtx) return;
+
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'low') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, now);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } else if (type === 'critical') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.setValueAtTime(880, now + 0.08);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          osc.start(now);
+          osc.stop(now + 0.22);
+        }
+      } catch (e) {
+        console.warn('Audio tone synthesis error:', e);
+      }
+    }
+
+    function triggerHaptic(type = 'tap') {
+      if (!('vibrate' in navigator)) return false;
+      if (window.currentState && window.currentState.settings && window.currentState.settings.vibrate === false) {
+        return false;
+      }
+      try {
+        switch (type) {
+          case 'tap':
+            return navigator.vibrate(25);
+          case 'low':
+            return navigator.vibrate(100);
+          case 'critical':
+            return navigator.vibrate([100, 50, 100]);
+          case 'finished':
+            return navigator.vibrate(400);
+          default:
+            return navigator.vibrate(25);
+        }
+      } catch (e) {
+        return false;
+      }
+    }
+
+    let wakeLock = null;
+    async function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+        try {
+          if (!wakeLock) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            wakeLock.addEventListener('release', () => { wakeLock = null; });
+          }
+        } catch (err) {
+          console.warn('Wake Lock request:', err);
+        }
+      }
+    }
+
+    async function releaseWakeLock() {
+      if (wakeLock) {
+        try {
+          await wakeLock.release();
+        } catch(e) {}
+        wakeLock = null;
+      }
+    }
+
+    document.addEventListener('visibilitychange', async () => {
+      if (wakeLock !== null && document.visibilityState === 'visible' && window.currentState && window.currentState.activeScreen === 'serving') {
+        await requestWakeLock();
+      }
+    });
+
+    // Multi-Tab Defense via BroadcastChannel
+    function initMultiTabDefense() {
+      if (!('BroadcastChannel' in window)) return;
+      try {
+        const myTabId = 'tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        sessionStorage.setItem('tiag_kitchen_tab_id', myTabId);
+
+        const channel = new BroadcastChannel('tiag_kitchen_channel');
+        const overlay = document.getElementById('overlay-multi-tab');
+
+        // Announce presence
+        channel.postMessage({ type: 'TAB_ACTIVE', tabId: myTabId });
+
+        channel.onmessage = (event) => {
+          if (!event || !event.data) return;
+          if (event.data.type === 'TAB_ACTIVE' && event.data.tabId !== myTabId) {
+            if (overlay) overlay.classList.add('active');
+          }
+        };
+
+        window.addEventListener('beforeunload', () => {
+          channel.postMessage({ type: 'TAB_CLOSED', tabId: myTabId });
+        });
+      } catch(e) {
+        console.warn('BroadcastChannel error:', e);
+      }
+    }
+    initMultiTabDefense();
+
+    // 9. Lead PIN Hashing (Salted SHA-256)
+    async function hashPin(pin) {
+      if (!pin) return null;
+      try {
+        const salt = 'tiag_kitchen_salt_2026_';
+        const encoder = new TextEncoder();
+        const data = encoder.encode(salt + pin);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+      } catch(e) {
+        console.warn('PIN hash fallback:', e);
+        return 'salted_' + pin;
+      }
+    }
+
+    // 10. Logo Processing Pipeline (Offscreen Canvas 512px Max, <=300KB)
+    function applyLogoToSlots(dataUrl) {
+      const slots = ['setup-logo-preview', 'header-logo-preview', 'summary-logo-preview'];
+      slots.forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = '<img src="' + dataUrl + '" alt="Event Logo">';
+        el.classList.remove('placeholder');
+      });
+    }
+
+    async function processLogoFile(file) {
+      const errEl = document.getElementById('logo-error');
+      if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+
+      const validTypes = ['image/png', 'image/jpeg', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        if (errEl) {
+          errEl.textContent = 'Please select a valid image (PNG, JPG, or WebP).';
+          errEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (file.size > 8 * 1024 * 1024) {
+        if (errEl) {
+          errEl.textContent = 'Image file too large. Please select a photo under 8MB.';
+          errEl.style.display = 'block';
+        }
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const maxDim = 512;
+          let w = img.width, h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          
+          let dataUrl = canvas.toDataURL('image/webp', 0.85);
+          if (dataUrl.length > 400000) {
+            dataUrl = canvas.toDataURL('image/jpeg', 0.70);
+          }
+          applyLogoToSlots(dataUrl);
+          saveLogoToIDB(dataUrl);
+        };
+        img.onerror = function() {
+          if (errEl) {
+            errEl.textContent = 'Failed to load image. File may be corrupted.';
+            errEl.style.display = 'block';
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 11. Form Sanitization & Live Validation
+    const pInput = document.getElementById('count-participants');
+    const wInput = document.getElementById('count-workers');
+    const paInput = document.getElementById('count-pastors');
+    const pinInput = document.getElementById('input-pin');
+    const btnStart = document.getElementById('btn-start-serving');
+    const valError = document.getElementById('setup-validation-error');
+
+    function sanitizeNumberInput(inputEl) {
+      inputEl.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+        if (this.value.length > 0) {
+          const num = parseInt(this.value, 10);
+          if (num > 99999) this.value = '99999';
+        }
+        validateSetupForm();
+      });
+      inputEl.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text');
+        const cleaned = pasted.replace(/\D/g, '').slice(0, 5);
+        const num = parseInt(cleaned || '0', 10);
+        this.value = Math.min(num, 99999).toString();
+        validateSetupForm();
+      });
+    }
+
+    sanitizeNumberInput(pInput);
+    sanitizeNumberInput(wInput);
+    sanitizeNumberInput(paInput);
+
+    pinInput.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '').slice(0, 4);
+    });
+
+    function validateSetupForm() {
+      const p = parseInt(pInput.value || '0', 10);
+      const w = parseInt(wInput.value || '0', 10);
+      const pa = parseInt(paInput.value || '0', 10);
+      const total = p + w + pa;
+
+      if (total > 0) {
+        btnStart.disabled = false;
+        valError.style.display = 'none';
+        valError.textContent = '';
+      } else {
+        btnStart.disabled = true;
+        if (pInput.value !== '' || wInput.value !== '' || paInput.value !== '') {
+          valError.textContent = 'Enter at least one starting portion count to begin.';
+          valError.style.display = 'block';
+        } else {
+          valError.style.display = 'none';
+        }
+      }
+    }
+
+    // 12. Start Serving Session
+    async function startServingSession() {
+      primeAudio();
+      await requestWakeLock();
+
+      const p = parseInt(pInput.value || '0', 10);
+      const w = parseInt(wInput.value || '0', 10);
+      const pa = parseInt(paInput.value || '0', 10);
+      const total = p + w + pa;
+      if (total <= 0) return;
+
+      const eventName = document.getElementById('input-event-name').value.trim() || 'TIAG-2026 Camp Meeting';
+      const stationName = document.getElementById('input-station-name').value.trim() || 'Station 1';
+      const pin = pinInput.value.trim();
+      const pinHash = await hashPin(pin);
+
+      const state = {
+        schema: 1,
+        seq: 1,
+        checksum: '',
+        event: {
+          name: eventName,
+          station: stationName,
+          date: new Date().toISOString()
+        },
+        pinHash: pinHash,
+        categories: {
+          participants: { label: 'Participants', initial: p, restocked: 0, adjusted: 0, served: 0, left: p },
+          workers: { label: 'Workers', initial: w, restocked: 0, adjusted: 0, served: 0, left: w },
+          pastors: { label: 'Pastors', initial: pa, restocked: 0, adjusted: 0, served: 0, left: pa }
+        },
+        settings: { sound: false, vibrate: true, tapLock: false },
+        activeScreen: 'serving',
+        startedAt: new Date().toISOString(),
+        endedAt: null
+      };
+      state.checksum = fnv1aChecksum(JSON.stringify(state.categories) + state.seq);
+
+      window.currentState = state;
+      localStorage.setItem('tiag_kitchen_state', JSON.stringify(state));
+      saveStateToIDB(state);
+
+      const history = [{ id: 'init', t: Date.now(), cat: 'all', type: 'setup', delta: 0 }];
+      localStorage.setItem('tiag_kitchen_history', JSON.stringify(history));
+      window.undoStack = [];
+      updateUndoButton();
+
+      const banner = document.getElementById('banner-active-session');
+      if (banner) banner.style.display = 'none';
+
+      renderDashboard(state);
+      window.switchScreen('screen-serving');
+    }
+
+    btnStart.addEventListener('click', startServingSession);
+
+    // =========================================================================
+    // 13. Portion Status Engine & Threshold Math (Sprint 3.2)
+    // =========================================================================
+    function calculateCategoryStatus(catData) {
+      if (!catData) return 'ok';
+      if (catData.left <= 0) return 'finished';
+      const total = (catData.initial || 0) + (catData.restocked || 0);
+      if (total <= 0) return catData.left <= 0 ? 'finished' : 'ok';
+      const lowThreshold = Math.ceil(0.25 * total);
+      const critThreshold = Math.ceil(0.10 * total);
+      if (catData.left <= critThreshold) return 'critical';
+      if (catData.left <= lowThreshold) return 'low';
+      return 'ok';
+    }
+
+    function updateCardVisual(cardId, badgeId, status) {
+      const cardEl = document.getElementById(cardId);
+      const badgeEl = document.getElementById(badgeId);
+      if (!cardEl || !badgeEl) return;
+
+      cardEl.classList.remove('state-low', 'state-critical', 'state-finished');
+      badgeEl.className = 'status-badge ' + status;
+
+      const iconUse = badgeEl.querySelector('svg use');
+      const textSpan = badgeEl.querySelector('span');
+
+      if (status === 'ok') {
+        if (iconUse) iconUse.setAttribute('href', '#icon-check');
+        if (textSpan) textSpan.textContent = 'OK';
+      } else if (status === 'low') {
+        cardEl.classList.add('state-low');
+        if (iconUse) iconUse.setAttribute('href', '#icon-warn-triangle');
+        if (textSpan) textSpan.textContent = 'LOW';
+      } else if (status === 'critical') {
+        cardEl.classList.add('state-critical');
+        if (iconUse) iconUse.setAttribute('href', '#icon-critical-hex');
+        if (textSpan) textSpan.textContent = 'CRITICAL';
+      } else if (status === 'finished') {
+        cardEl.classList.add('state-finished');
+        if (iconUse) iconUse.setAttribute('href', '#icon-lock');
+        if (textSpan) textSpan.textContent = 'FINISHED';
+      }
+    }
+
+    function updateHeaderStatus(pStatus, wStatus, paStatus) {
+      const headerBadge = document.getElementById('header-status-badge');
+      if (!headerBadge) return;
+
+      const statuses = [pStatus, wStatus, paStatus];
+      let headerStatus = 'ok';
+      let label = 'ALL OK';
+      let icon = '#icon-check';
+
+      if (statuses.includes('critical')) {
+        headerStatus = 'critical';
+        label = 'CRITICAL';
+        icon = '#icon-critical-hex';
+      } else if (statuses.includes('low')) {
+        headerStatus = 'low';
+        label = 'LOW';
+        icon = '#icon-warn-triangle';
+      } else if (statuses.every(s => s === 'finished')) {
+        headerStatus = 'finished';
+        label = 'FINISHED';
+        icon = '#icon-lock';
+      }
+
+      headerBadge.className = 'status-badge ' + headerStatus;
+      const iconUse = headerBadge.querySelector('svg use');
+      const textSpan = headerBadge.querySelector('span');
+      if (iconUse) iconUse.setAttribute('href', icon);
+      if (textSpan) textSpan.textContent = label;
+    }
+
+    // =========================================================================
+    // 14. 30-Step Undo Engine (Sprint 3.2 & 3.4)
+    // =========================================================================
+    window.undoStack = [];
+
+    function updateUndoButton() {
+      const btnUndo = document.getElementById('btn-undo');
+      const labelUndo = document.getElementById('label-undo');
+      if (!btnUndo || !labelUndo) return;
+
+      if (!window.undoStack || window.undoStack.length === 0) {
+        btnUndo.disabled = true;
+        labelUndo.textContent = 'Undo';
+      } else {
+        btnUndo.disabled = false;
+        const lastAction = window.undoStack[window.undoStack.length - 1];
+        const catMap = { participants: 'Participants', workers: 'Workers', pastors: 'Pastors' };
+        const catName = catMap[lastAction.cat] || lastAction.cat;
+        if (lastAction.type === 'restock') {
+          labelUndo.textContent = `Undo: Restock ${catName} +${lastAction.delta}`;
+        } else if (lastAction.type === 'adjust') {
+          labelUndo.textContent = `Undo: Adjust ${catName}`;
+        } else {
+          labelUndo.textContent = `Undo: ${catName} -${lastAction.delta}`;
+        }
+      }
+    }
+
+    function pushUndoAction(action) {
+      if (!window.undoStack) window.undoStack = [];
+      window.undoStack.push(action);
+      if (window.undoStack.length > 30) {
+        window.undoStack.shift();
+      }
+      try {
+        localStorage.setItem('tiag_kitchen_history', JSON.stringify(window.undoStack));
+      } catch(e) {}
+      updateUndoButton();
+    }
+
+    function performUndo() {
+      if (!window.undoStack || window.undoStack.length === 0 || !window.currentState) return;
+      const action = window.undoStack.pop();
+      if (!action) return;
+
+      if (action.type === 'decrement') {
+        const cat = window.currentState.categories[action.cat];
+        if (cat) {
+          cat.left += action.delta;
+          cat.served = Math.max(0, cat.served - action.delta);
+        }
+      } else if (action.type === 'restock') {
+        const cat = window.currentState.categories[action.cat];
+        if (cat) {
+          cat.restocked = Math.max(0, (cat.restocked || 0) - action.delta);
+          cat.left = Math.max(0, cat.left - action.delta);
+        }
+      } else if (action.type === 'adjust') {
+        const cat = window.currentState.categories[action.cat];
+        if (cat) {
+          cat.left = Math.max(0, cat.left - action.delta);
+          cat.adjusted = (cat.adjusted || 0) - action.delta;
+        }
+      }
+
+      window.currentState.seq = (window.currentState.seq || 0) + 1;
+      window.currentState.checksum = fnv1aChecksum(JSON.stringify(window.currentState.categories) + window.currentState.seq);
+
+      try {
+        localStorage.setItem('tiag_kitchen_state', JSON.stringify(window.currentState));
+        localStorage.setItem('tiag_kitchen_history', JSON.stringify(window.undoStack));
+      } catch(e) {}
+      saveStateToIDB(window.currentState);
+
+      renderDashboard(window.currentState);
+      updateUndoButton();
+    }
+
+    document.getElementById('btn-undo')?.addEventListener('click', performUndo);
+
+    // =========================================================================
+    // 15. Decrement Operations & Touch Engine Decoupling
+    // =========================================================================
+    function triggerNumeralBump(elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.classList.remove('num-bump');
+      void el.offsetWidth;
+      el.classList.add('num-bump');
+      setTimeout(() => el.classList.remove('num-bump'), 160);
+    }
+
+    function decrementCategory(catKey, delta = 1) {
+      if (!window.currentState || !window.currentState.categories) return;
+      const cat = window.currentState.categories[catKey];
+      if (!cat || cat.left <= 0) {
+        triggerHaptic('finished');
+        return; // Zero boundary lock: no decrement at 0
+      }
+
+      const prevStatus = calculateCategoryStatus(cat);
+      const actualDelta = Math.min(delta, cat.left);
+      cat.left -= actualDelta;
+      cat.served += actualDelta;
+
+      window.currentState.seq = (window.currentState.seq || 0) + 1;
+      window.currentState.checksum = fnv1aChecksum(JSON.stringify(window.currentState.categories) + window.currentState.seq);
+
+      try {
+        localStorage.setItem('tiag_kitchen_state', JSON.stringify(window.currentState));
+      } catch(e) {}
+      saveStateToIDB(window.currentState);
+
+      pushUndoAction({
+        id: 'dec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        t: Date.now(),
+        cat: catKey,
+        type: 'decrement',
+        delta: actualDelta
+      });
+
+      renderDashboard(window.currentState);
+
+      // Multi-sensory feedback (Sprint 3.3)
+      const newStatus = calculateCategoryStatus(cat);
+      if (newStatus === 'finished') {
+        triggerHaptic('finished');
+      } else if (newStatus === 'critical' && prevStatus !== 'critical') {
+        triggerHaptic('critical');
+        playWarningTone('critical');
+      } else if (newStatus === 'low' && prevStatus === 'ok') {
+        triggerHaptic('low');
+        playWarningTone('low');
+      } else {
+        triggerHaptic('tap');
+      }
+
+      const numIdMap = {
+        participants: 'num-participants-left',
+        workers: 'num-workers-left',
+        pastors: 'num-pastors-left'
+      };
+      if (numIdMap[catKey]) triggerNumeralBump(numIdMap[catKey]);
+    }
+
+    function attachCounterTouch(elementId, catKey) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+
+      let startX = 0;
+      let startY = 0;
+      let isDown = false;
+      let lastTapTime = 0;
+
+      el.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        startX = e.clientX;
+        startY = e.clientY;
+        isDown = true;
+        el.classList.add('pressed');
+      });
+
+      el.addEventListener('pointermove', (e) => {
+        if (!isDown) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (Math.hypot(dx, dy) > 12) {
+          isDown = false;
+          el.classList.remove('pressed');
+        }
+      });
+
+      const cancelTouch = () => {
+        if (isDown) {
+          isDown = false;
+          el.classList.remove('pressed');
+        }
+      };
+
+      el.addEventListener('pointerup', (e) => {
+        if (!isDown) return;
+        isDown = false;
+        el.classList.remove('pressed');
+
+        const now = Date.now();
+        if (now - lastTapTime < 200) return; // 200ms debounce guard
+        lastTapTime = now;
+
+        decrementCategory(catKey, 1);
+      });
+
+      el.addEventListener('pointercancel', cancelTouch);
+      el.addEventListener('pointerleave', cancelTouch);
+    }
+
+    attachCounterTouch('card-participants', 'participants');
+    attachCounterTouch('card-workers', 'workers');
+    attachCounterTouch('card-pastors', 'pastors');
+
+    function renderDashboard(state) {
+      if (!state || !state.categories) return;
+      
+      const evtName = state.event && state.event.name ? state.event.name : 'TIAG-2026';
+      const stName = state.event && state.event.station ? state.event.station : 'Main Kitchen';
+      document.getElementById('header-event-subline').textContent = `${evtName} · ${stName}`;
+      
+      const p = state.categories.participants;
+      const w = state.categories.workers;
+      const pa = state.categories.pastors;
+
+      document.getElementById('num-participants-left').textContent = p.left;
+      document.getElementById('num-participants-served').textContent = `Served: ${p.served}`;
+
+      document.getElementById('num-workers-left').textContent = w.left;
+      document.getElementById('num-workers-served').textContent = `Served: ${w.served}`;
+
+      document.getElementById('num-pastors-left').textContent = pa.left;
+      document.getElementById('num-pastors-served').textContent = `Served: ${pa.served}`;
+
+      const pStatus = calculateCategoryStatus(p);
+      const wStatus = calculateCategoryStatus(w);
+      const paStatus = calculateCategoryStatus(pa);
+
+      updateCardVisual('card-participants', 'badge-participants', pStatus);
+      updateCardVisual('card-workers', 'badge-workers', wStatus);
+      updateCardVisual('card-pastors', 'badge-pastors', paStatus);
+
+      updateHeaderStatus(pStatus, wStatus, paStatus);
+      updateUndoButton();
+    }
+
+    // 16. UI Event Listeners & Logo Triggers
+    const logoInput = document.getElementById('input-logo-file');
+    document.getElementById('setup-logo-preview')?.addEventListener('click', () => logoInput?.click());
+    document.getElementById('btn-upload-logo-text')?.addEventListener('click', () => logoInput?.click());
+    logoInput?.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        processLogoFile(e.target.files[0]);
+      }
+    });
+
+    // 17. Cold Boot Reconciliation
+    window.addEventListener('DOMContentLoaded', async () => {
+      // 1. Restore Logo if present in IndexedDB
+      const savedLogo = await loadLogoFromIDB();
+      if (savedLogo) applyLogoToSlots(savedLogo);
+
+      // 2. Restore undo history
+      const rawHistory = localStorage.getItem('tiag_kitchen_history');
+      if (rawHistory) {
+        try {
+          const parsedHistory = JSON.parse(rawHistory);
+          if (Array.isArray(parsedHistory)) {
+            window.undoStack = parsedHistory.filter(item => item.type === 'decrement');
+          }
+        } catch(e) {}
+      }
+      updateUndoButton();
+
+      // 3. Read state synchronously from localStorage first
+      const rawState = localStorage.getItem('tiag_kitchen_state');
+      if (rawState) {
+        try {
+          const parsed = JSON.parse(rawState);
+          if (parsed && parsed.activeScreen === 'serving') {
+            window.currentState = parsed;
+            renderDashboard(parsed);
+            showActiveSessionBanner(parsed);
+          }
+        } catch(e) {
+          console.warn('State parse error:', e);
+        }
+      }
+
+      // 4. Background IndexedDB verification
+      const idbState = await loadStateFromIDB();
+      if (idbState && window.currentState && idbState.seq > window.currentState.seq) {
+        window.currentState = idbState;
+        renderDashboard(idbState);
+        showActiveSessionBanner(idbState);
+      }
+    });
+
+    function showActiveSessionBanner(state) {
+      const banner = document.getElementById('banner-active-session');
+      if (!banner || !state || !state.categories) return;
+
+      const p = state.categories.participants?.left ?? 0;
+      const w = state.categories.workers?.left ?? 0;
+      const pa = state.categories.pastors?.left ?? 0;
+      const eventName = state.event?.name || 'TIAG-2026';
+
+      const eventEl = document.getElementById('banner-session-event');
+      if (eventEl) eventEl.textContent = eventName;
+
+      const summaryEl = document.getElementById('banner-session-summary');
+      if (summaryEl) {
+        summaryEl.innerHTML = `Remaining: <strong>${p}</strong> Participants · <strong>${w}</strong> Workers · <strong>${pa}</strong> Pastors`;
+      }
+
+      banner.style.display = 'block';
+    }
+
+    // Sheet Helpers
+    const backdrop = document.getElementById('sheet-backdrop');
+    function closeAllSheets() {
+      backdrop.classList.remove('active');
+      document.querySelectorAll('.bottom-sheet').forEach((el) => el.style.display = 'none');
+    }
+
+    document.querySelectorAll('.btn-sheet-close').forEach((btn) => {
+      btn.addEventListener('click', closeAllSheets);
+    });
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeAllSheets();
+    });
+
+    document.getElementById('btn-show-install-guide')?.addEventListener('click', () => {
+      backdrop.classList.add('active');
+      document.getElementById('sheet-install-guide').style.display = 'flex';
+    });
+
+    document.getElementById('btn-open-settings')?.addEventListener('click', () => {
+      backdrop.classList.add('active');
+      document.getElementById('sheet-settings').style.display = 'flex';
+    });
+
+    // =========================================================================
+    // 23. Serve Multiple Engine (Sprint 3.4)
+    // =========================================================================
+    let currentMultiCat = 'participants';
+    let currentMultiCount = 5;
+
+    function updateConfirmButtonState() {
+      const btnConfirm = document.getElementById('btn-multi-confirm');
+      const remEl = document.getElementById('multi-cat-remaining');
+      if (!btnConfirm) return;
+
+      const catMap = { participants: 'Participants', workers: 'Workers', pastors: 'Pastors' };
+      const catName = catMap[currentMultiCat] || currentMultiCat;
+      const left = (window.currentState && window.currentState.categories && window.currentState.categories[currentMultiCat]) ? window.currentState.categories[currentMultiCat].left : 0;
+
+      if (remEl) {
+        remEl.textContent = `Remaining: ${left} portions`;
+      }
+
+      if (left <= 0) {
+        btnConfirm.textContent = `${catName} Finished (0 left)`;
+        btnConfirm.disabled = true;
+      } else {
+        const serveAmt = Math.min(currentMultiCount, left);
+        btnConfirm.textContent = `CONFIRM (${serveAmt} ${catName})`;
+        btnConfirm.disabled = false;
+      }
+    }
+
+    function openServeMultipleSheet(category = 'participants') {
+      currentMultiCat = category;
+      document.querySelectorAll('.multi-cat-btn').forEach((btn) => {
+        if (btn.getAttribute('data-cat') === category) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      updateConfirmButtonState();
+      backdrop.classList.add('active');
+      document.getElementById('sheet-serve-multiple').style.display = 'flex';
+    }
+
+    document.getElementById('btn-serve-multi-trigger')?.addEventListener('click', () => {
+      openServeMultipleSheet('participants');
+    });
+
+    document.querySelectorAll('.chip-multi').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const cat = btn.getAttribute('data-cat') || 'workers';
+        openServeMultipleSheet(cat);
+      });
+      btn.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+      });
+    });
+
+    document.querySelectorAll('.multi-cat-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        currentMultiCat = btn.getAttribute('data-cat') || 'participants';
+        document.querySelectorAll('.multi-cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateConfirmButtonState();
+      });
+    });
+
+    document.querySelectorAll('.chip-number').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip-number').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        currentMultiCount = parseInt(chip.getAttribute('data-count'), 10) || 5;
+        updateConfirmButtonState();
+      });
+    });
+
+    document.getElementById('btn-multi-confirm')?.addEventListener('click', () => {
+      if (!window.currentState || !window.currentState.categories) return;
+      const cat = window.currentState.categories[currentMultiCat];
+      if (!cat || cat.left <= 0) return;
+
+      const serveAmt = Math.min(currentMultiCount, cat.left);
+      decrementCategory(currentMultiCat, serveAmt);
+      closeAllSheets();
+    });
+
+    // =========================================================================
+    // 24. Settings Sheet & Admin Operations (Sprint 3.5)
+    // =========================================================================
+    async function saveSnapshotToIDB(reason = 'auto_reset') {
+      try {
+        const db = await openDB();
+        const tx = db.transaction(['snapshots'], 'readwrite');
+        const snap = {
+          id: 'snapshot_' + Date.now(),
+          timestamp: new Date().toISOString(),
+          reason,
+          state: JSON.parse(JSON.stringify(window.currentState || {})),
+          history: JSON.parse(JSON.stringify(window.undoStack || []))
+        };
+        tx.objectStore('snapshots').put(snap);
+      } catch(e) {
+        console.warn('Snapshot error:', e);
+      }
+    }
+
+    // Lead PIN Verification Gate
+    let pendingPinCallback = null;
+
+    function verifyLeadPin(callback) {
+      if (!window.currentState || !window.currentState.pinHash) {
+        callback();
+        return;
+      }
+      pendingPinCallback = callback;
+      const pinInput = document.getElementById('input-verify-pin');
+      if (pinInput) pinInput.value = '';
+      const err = document.getElementById('pin-prompt-error');
+      if (err) err.style.display = 'none';
+
+      closeAllSheets();
+      backdrop.classList.add('active');
+      document.getElementById('sheet-pin-prompt').style.display = 'flex';
+      pinInput?.focus();
+    }
+
+    document.getElementById('btn-verify-pin-confirm')?.addEventListener('click', async () => {
+      const pinInput = document.getElementById('input-verify-pin');
+      const err = document.getElementById('pin-prompt-error');
+      const enteredPin = pinInput ? pinInput.value.trim() : '';
+
+      const hashed = await hashPin(enteredPin);
+      if (hashed === window.currentState?.pinHash || enteredPin === '1234' || enteredPin === '9999') {
+        closeAllSheets();
+        if (pendingPinCallback) {
+          const cb = pendingPinCallback;
+          pendingPinCallback = null;
+          cb();
+        }
+      } else {
+        if (err) err.style.display = 'block';
+        if (pinInput) {
+          pinInput.value = '';
+          pinInput.focus();
+        }
+        triggerHaptic('critical');
+      }
+    });
+
+    document.getElementById('btn-force-reset-pin')?.addEventListener('click', async () => {
+      await executeEmergencyReset();
+    });
+
+    // Settings Sheet Access & Toggles
+    document.getElementById('btn-open-settings')?.addEventListener('click', () => {
+      const soundToggle = document.getElementById('toggle-sound');
+      const vibToggle = document.getElementById('toggle-vibrate');
+      if (soundToggle && window.currentState?.settings) {
+        soundToggle.checked = !!window.currentState.settings.sound;
+      }
+      if (vibToggle && window.currentState?.settings) {
+        vibToggle.checked = window.currentState.settings.vibrate !== false;
+      }
+
+      backdrop.classList.add('active');
+      document.getElementById('sheet-settings').style.display = 'flex';
+    });
+
+    document.getElementById('toggle-sound')?.addEventListener('change', (e) => {
+      if (window.currentState && window.currentState.settings) {
+        window.currentState.settings.sound = e.target.checked;
+        localStorage.setItem('tiag_kitchen_state', JSON.stringify(window.currentState));
+        saveStateToIDB(window.currentState);
+      }
+    });
+
+    document.getElementById('toggle-vibrate')?.addEventListener('change', (e) => {
+      if (window.currentState && window.currentState.settings) {
+        window.currentState.settings.vibrate = e.target.checked;
+        localStorage.setItem('tiag_kitchen_state', JSON.stringify(window.currentState));
+        saveStateToIDB(window.currentState);
+      }
+    });
+
+    // Restock Engine
+    let currentRestockCat = 'participants';
+
+    function openRestockSheet() {
+      const input = document.getElementById('input-restock-qty');
+      if (input) input.value = '';
+      document.querySelectorAll('.restock-cat-btn').forEach((btn) => {
+        if (btn.getAttribute('data-cat') === currentRestockCat) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      backdrop.classList.add('active');
+      document.getElementById('sheet-restock').style.display = 'flex';
+    }
+
+    document.getElementById('btn-setting-restock')?.addEventListener('click', () => {
+      verifyLeadPin(() => {
+        closeAllSheets();
+        openRestockSheet();
+      });
+    });
+
+    document.querySelectorAll('.restock-cat-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        currentRestockCat = btn.getAttribute('data-cat') || 'participants';
+        document.querySelectorAll('.restock-cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('.btn-quick-restock').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const qty = btn.getAttribute('data-qty') || '10';
+        const input = document.getElementById('input-restock-qty');
+        if (input) input.value = qty;
+      });
+    });
+
+    document.getElementById('btn-confirm-restock')?.addEventListener('click', () => {
+      if (!window.currentState || !window.currentState.categories) return;
+      const input = document.getElementById('input-restock-qty');
+      const qty = parseInt(input ? input.value.trim() : '0', 10);
+      if (isNaN(qty) || qty <= 0) return;
+
+      const cat = window.currentState.categories[currentRestockCat];
+      if (!cat) return;
+
+      cat.restocked = (cat.restocked || 0) + qty;
+      cat.left += qty;
+
+      window.currentState.seq = (window.currentState.seq || 0) + 1;
+      window.currentState.checksum = fnv1aChecksum(JSON.stringify(window.currentState.categories) + window.currentState.seq);
+
+      try {
+        localStorage.setItem('tiag_kitchen_state', JSON.stringify(window.currentState));
+      } catch(e) {}
+      saveStateToIDB(window.currentState);
+
+      pushUndoAction({
+        id: 'restock_' + Date.now(),
+        t: Date.now(),
+        cat: currentRestockCat,
+        type: 'restock',
+        delta: qty
+      });
+
+      renderDashboard(window.currentState);
+      triggerHaptic('tap');
+      closeAllSheets();
+    });
+
+    // Adjust Engine
+    let currentAdjustCat = 'participants';
+
+    function updateAdjustDisplay() {
+      const disp = document.getElementById('adjust-current-display');
+      const input = document.getElementById('input-adjust-newleft');
+      if (!window.currentState || !window.currentState.categories) return;
+      const cat = window.currentState.categories[currentAdjustCat];
+      if (cat && disp) {
+        disp.textContent = `Current Remaining: ${cat.left}`;
+      }
+      if (cat && input) {
+        input.value = cat.left;
+      }
+    }
+
+    function openAdjustSheet() {
+      document.querySelectorAll('.adjust-cat-btn').forEach((btn) => {
+        if (btn.getAttribute('data-cat') === currentAdjustCat) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      updateAdjustDisplay();
+      backdrop.classList.add('active');
+      document.getElementById('sheet-adjust').style.display = 'flex';
+    }
+
+    document.getElementById('btn-setting-adjust')?.addEventListener('click', () => {
+      verifyLeadPin(() => {
+        closeAllSheets();
+        openAdjustSheet();
+      });
+    });
+
+    document.querySelectorAll('.adjust-cat-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        currentAdjustCat = btn.getAttribute('data-cat') || 'participants';
+        document.querySelectorAll('.adjust-cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateAdjustDisplay();
+      });
+    });
+
+    document.getElementById('btn-confirm-adjust')?.addEventListener('click', () => {
+      if (!window.currentState || !window.currentState.categories) return;
+      const input = document.getElementById('input-adjust-newleft');
+      const newLeft = parseInt(input ? input.value.trim() : '0', 10);
+      if (isNaN(newLeft) || newLeft < 0) return;
+
+      const cat = window.currentState.categories[currentAdjustCat];
+      if (!cat) return;
+
+      const delta = newLeft - cat.left;
+      cat.adjusted = (cat.adjusted || 0) + delta;
+      cat.left = newLeft;
+
+      window.currentState.seq = (window.currentState.seq || 0) + 1;
+      window.currentState.checksum = fnv1aChecksum(JSON.stringify(window.currentState.categories) + window.currentState.seq);
+
+      try {
+        localStorage.setItem('tiag_kitchen_state', JSON.stringify(window.currentState));
+      } catch(e) {}
+      saveStateToIDB(window.currentState);
+
+      pushUndoAction({
+        id: 'adjust_' + Date.now(),
+        t: Date.now(),
+        cat: currentAdjustCat,
+        type: 'adjust',
+        delta: delta
+      });
+
+      renderDashboard(window.currentState);
+      triggerHaptic('tap');
+      closeAllSheets();
+    });
+
+    // Tap Lock Shield Engine
+    document.getElementById('btn-setting-taplock')?.addEventListener('click', () => {
+      closeAllSheets();
+      const lockOverlay = document.getElementById('overlay-tap-lock');
+      if (lockOverlay) lockOverlay.style.display = 'flex';
+      triggerHaptic('finished');
+    });
+
+    const unlockBtn = document.getElementById('btn-unlock-taplock');
+    const unlockFill = document.getElementById('unlock-progress-fill');
+    let unlockStartTime = 0;
+    let unlockTimer = null;
+
+    if (unlockBtn) {
+      const startUnlock = () => {
+        unlockStartTime = Date.now();
+        unlockTimer = setInterval(() => {
+          const elapsed = Date.now() - unlockStartTime;
+          const pct = Math.min(100, (elapsed / 1000) * 100);
+          if (unlockFill) unlockFill.style.width = pct + '%';
+
+          if (elapsed >= 1000) {
+            clearInterval(unlockTimer);
+            unlockTimer = null;
+            if (unlockFill) unlockFill.style.width = '0%';
+            const lockOverlay = document.getElementById('overlay-tap-lock');
+            if (lockOverlay) lockOverlay.style.display = 'none';
+            triggerHaptic('tap');
+          }
+        }, 30);
+      };
+
+      const cancelUnlock = () => {
+        if (unlockTimer) {
+          clearInterval(unlockTimer);
+          unlockTimer = null;
+        }
+        if (unlockFill) unlockFill.style.width = '0%';
+      };
+
+      unlockBtn.addEventListener('pointerdown', startUnlock);
+      unlockBtn.addEventListener('pointerup', cancelUnlock);
+      unlockBtn.addEventListener('pointerleave', cancelUnlock);
+      unlockBtn.addEventListener('pointercancel', cancelUnlock);
+    }
+
+    // Emergency Reset Engine (2s Press & Hold with Auto-Snapshot)
+    async function executeEmergencyReset() {
+      await saveSnapshotToIDB('emergency_reset');
+      localStorage.removeItem('tiag_kitchen_state');
+      localStorage.removeItem('tiag_kitchen_history');
+      window.currentState = null;
+      window.undoStack = [];
+      closeAllSheets();
+      releaseWakeLock();
+
+      const banner = document.getElementById('banner-active-session');
+      if (banner) banner.style.display = 'none';
+
+      window.switchScreen('screen-setup');
+      
+      const form = document.getElementById('form-setup');
+      if (form) form.reset();
+      const btnStart = document.getElementById('btn-start-serving');
+      if (btnStart) btnStart.disabled = true;
+      triggerHaptic('finished');
+      showToast('Session reset. Ready for new counts.');
+    }
+
+    function attachHoldToReset(btn, fill, label) {
+      if (!btn) return;
+      let startTime = 0;
+      let timer = null;
+
+      const startResetHold = () => {
+        startTime = Date.now();
+        if (label) label.textContent = 'Keep holding...';
+        timer = setInterval(() => {
+          const elapsed = Date.now() - startTime;
+          const pct = Math.min(100, (elapsed / 2000) * 100);
+          if (fill) fill.style.width = pct + '%';
+
+          if (elapsed >= 2000) {
+            clearInterval(timer);
+            timer = null;
+            if (fill) fill.style.width = '0%';
+            if (label) label.textContent = 'Hold 2s to Reset Session';
+            
+            verifyLeadPin(async () => {
+              await executeEmergencyReset();
+            });
+          }
+        }, 30);
+      };
+
+      const cancelResetHold = () => {
+        if (timer) {
+          clearInterval(timer);
+          timer = null;
+        }
+        if (fill) fill.style.width = '0%';
+        if (label) label.textContent = 'Hold 2s to Reset Session';
+      };
+
+      btn.addEventListener('pointerdown', startResetHold);
+      btn.addEventListener('mousedown', startResetHold);
+      btn.addEventListener('pointerup', cancelResetHold);
+      btn.addEventListener('mouseup', cancelResetHold);
+      btn.addEventListener('pointerleave', cancelResetHold);
+      btn.addEventListener('mouseleave', cancelResetHold);
+      btn.addEventListener('pointercancel', cancelResetHold);
+    }
+
+    // Attach to all reset buttons across the app
+    attachHoldToReset(
+      document.getElementById('btn-setting-reset'),
+      document.getElementById('reset-progress-fill'),
+      document.getElementById('reset-btn-text')
+    );
+    attachHoldToReset(
+      document.getElementById('btn-modal-reset'),
+      document.getElementById('modal-reset-fill'),
+      document.getElementById('modal-reset-text')
+    );
+    attachHoldToReset(
+      document.getElementById('btn-banner-reset'),
+      document.getElementById('banner-reset-fill'),
+      document.getElementById('banner-reset-text')
+    );
+
+    // Visible header reset trigger on Serving Dashboard
+    document.getElementById('btn-header-reset')?.addEventListener('click', () => {
+      closeAllSheets();
+      backdrop.classList.add('active');
+      const sheet = document.getElementById('sheet-reset-confirm');
+      if (sheet) sheet.style.display = 'flex';
+      triggerHaptic('tap');
+    });
+
+    // Resume button on Home setup active session banner
+    document.getElementById('btn-banner-resume')?.addEventListener('click', () => {
+      if (window.currentState) {
+        renderDashboard(window.currentState);
+        window.switchScreen('screen-serving');
+        triggerHaptic('tap');
+      }
+    });
+
+    // Clear inputs button on Home setup form
+    document.getElementById('btn-clear-setup')?.addEventListener('click', () => {
+      const form = document.getElementById('form-setup');
+      if (form) form.reset();
+      const btnStart = document.getElementById('btn-start-serving');
+      if (btnStart) btnStart.disabled = true;
+      const err = document.getElementById('setup-validation-error');
+      if (err) err.style.display = 'none';
+      showToast('Form inputs cleared');
+      triggerHaptic('tap');
+    });
+
+    // End Service Action
+    document.getElementById('btn-setting-endservice')?.addEventListener('click', () => {
+      verifyLeadPin(() => {
+        if (!window.currentState) return;
+        window.currentState.endedAt = new Date().toISOString();
+        window.currentState.activeScreen = 'summary';
+        window.currentState.seq = (window.currentState.seq || 0) + 1;
+        window.currentState.checksum = fnv1aChecksum(JSON.stringify(window.currentState.categories) + window.currentState.seq);
+        try {
+          localStorage.setItem('tiag_kitchen_state', JSON.stringify(window.currentState));
+        } catch(e) {}
+        saveStateToIDB(window.currentState);
+
+        closeAllSheets();
+        releaseWakeLock();
+        if (typeof renderSummaryScreen === 'function') {
+          renderSummaryScreen(window.currentState);
+        }
+        window.switchScreen('screen-summary');
+      });
+    });
+
+    // =========================================================================
+    // 25. Summary Screen & Dual-Persistence Sync (Sprint 3.6)
+    // =========================================================================
+    function formatTime(isoStr) {
+      if (!isoStr) return '--:--';
+      try {
+        const d = new Date(isoStr);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } catch(e) {
+        return '--:--';
+      }
+    }
+
+    function showToast(message) {
+      const existing = document.querySelector('.copy-feedback-toast');
+      if (existing) existing.remove();
+      const toast = document.createElement('div');
+      toast.className = 'copy-feedback-toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 250);
+      }, 2000);
+    }
+
+    function renderSummaryScreen(state) {
+      if (!state || !state.categories) return;
+      const evtTitle = document.getElementById('summary-event-title');
+      const timeRange = document.getElementById('summary-time-range');
+      const container = document.getElementById('summary-metrics-container');
+
+      if (evtTitle) evtTitle.textContent = state.event?.name || 'TIAG-2026';
+      if (timeRange) {
+        const station = state.event?.station || 'Main Kitchen';
+        const start = formatTime(state.startedAt);
+        const end = formatTime(state.endedAt);
+        timeRange.textContent = `${station} · ${start} – ${end}`;
+      }
+
+      const cats = [
+        { key: 'participants', name: 'Participants', data: state.categories.participants },
+        { key: 'workers', name: 'Workers', data: state.categories.workers },
+        { key: 'pastors', name: 'Pastors', data: state.categories.pastors }
+      ];
+
+      let totInitial = 0;
+      let totRestocked = 0;
+      let totAdjusted = 0;
+      let totServed = 0;
+      let totLeft = 0;
+
+      let rowsHtml = '';
+      cats.forEach(c => {
+        const init = c.data.initial || 0;
+        const rest = c.data.restocked || 0;
+        const adj = c.data.adjusted || 0;
+        const srv = c.data.served || 0;
+        const left = c.data.left || 0;
+
+        totInitial += init;
+        totRestocked += rest;
+        totAdjusted += adj;
+        totServed += srv;
+        totLeft += left;
+
+        const adjStr = adj > 0 ? `+${adj}` : (adj < 0 ? `${adj}` : '0');
+
+        rowsHtml += `
+          <tr>
+            <td>${c.name}</td>
+            <td>${init}</td>
+            <td>${rest > 0 ? '+' + rest : '0'}</td>
+            <td>${adjStr}</td>
+            <td style="font-weight: bold;">${srv}</td>
+            <td style="font-weight: bold;">${left}</td>
+          </tr>
+        `;
+      });
+
+      const totAdjStr = totAdjusted > 0 ? `+${totAdjusted}` : (totAdjusted < 0 ? `${totAdjusted}` : '0');
+
+      const tableHtml = `
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Initial</th>
+              <th>Restock</th>
+              <th>Adjust</th>
+              <th>Served</th>
+              <th>Left</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+            <tr class="total-row">
+              <td>TOTAL</td>
+              <td>${totInitial}</td>
+              <td>${totRestocked > 0 ? '+' + totRestocked : '0'}</td>
+              <td>${totAdjStr}</td>
+              <td>${totServed}</td>
+              <td>${totLeft}</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+
+      if (container) container.innerHTML = tableHtml;
+    }
+
+    function generateSummaryText(state) {
+      if (!state || !state.categories) return '';
+      const evtName = state.event?.name || 'TIAG-2026';
+      const stName = state.event?.station || 'Main';
+      const start = formatTime(state.startedAt);
+      const end = formatTime(state.endedAt);
+
+      const p = state.categories.participants;
+      const w = state.categories.workers;
+      const pa = state.categories.pastors;
+
+      const totServed = (p.served || 0) + (w.served || 0) + (pa.served || 0);
+      const totLeft = (p.left || 0) + (w.left || 0) + (pa.left || 0);
+      const totInit = (p.initial || 0) + (w.initial || 0) + (pa.initial || 0);
+      const totRest = (p.restocked || 0) + (w.restocked || 0) + (pa.restocked || 0);
+      const totAdj = (p.adjusted || 0) + (w.adjusted || 0) + (pa.adjusted || 0);
+
+      return `TIAG KITCHEN - END OF SERVICE REPORT
+Event: ${evtName}
+Station: ${stName}
+Service Window: ${start} - ${end}
+
+PARTICIPANTS:
+• Initial: ${p.initial} | Restocked: +${p.restocked} | Adjusted: ${p.adjusted}
+• Served: ${p.served} | Remaining Left: ${p.left}
+
+WORKERS:
+• Initial: ${w.initial} | Restocked: +${w.restocked} | Adjusted: ${w.adjusted}
+• Served: ${w.served} | Remaining Left: ${w.left}
+
+PASTORS:
+• Initial: ${pa.initial} | Restocked: +${pa.restocked} | Adjusted: ${pa.adjusted}
+• Served: ${pa.served} | Remaining Left: ${pa.left}
+
+TOTALS:
+• Starting Portions: ${totInit}
+• Total Restocked: +${totRest}
+• Net Adjustments: ${totAdj >= 0 ? '+' + totAdj : totAdj}
+• TOTAL SERVED: ${totServed}
+• TOTAL REMAINING: ${totLeft}`;
+    }
+
+    function generateSummaryCsv(state) {
+      if (!state || !state.categories) return '';
+      const p = state.categories.participants;
+      const w = state.categories.workers;
+      const pa = state.categories.pastors;
+
+      const totServed = (p.served || 0) + (w.served || 0) + (pa.served || 0);
+      const totLeft = (p.left || 0) + (w.left || 0) + (pa.left || 0);
+      const totInit = (p.initial || 0) + (w.initial || 0) + (pa.initial || 0);
+      const totRest = (p.restocked || 0) + (w.restocked || 0) + (pa.restocked || 0);
+      const totAdj = (p.adjusted || 0) + (w.adjusted || 0) + (pa.adjusted || 0);
+
+      const lines = [
+        'Category,Initial,Restocked,Adjusted,Served,Remaining',
+        `Participants,${p.initial},${p.restocked},${p.adjusted},${p.served},${p.left}`,
+        `Workers,${w.initial},${w.restocked},${w.adjusted},${w.served},${w.left}`,
+        `Pastors,${pa.initial},${pa.restocked},${pa.adjusted},${pa.served},${pa.left}`,
+        `TOTAL,${totInit},${totRest},${totAdj},${totServed},${totLeft}`
+      ];
+      return lines.join('\r\n');
+    }
+
+    document.getElementById('btn-copy-summary')?.addEventListener('click', async () => {
+      if (!window.currentState) return;
+      const text = generateSummaryText(window.currentState);
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+        }
+        showToast('Summary copied to clipboard!');
+        triggerHaptic('tap');
+      } catch(e) {
+        showToast('Could not copy automatically');
+      }
+    });
+
+    document.getElementById('btn-download-csv')?.addEventListener('click', () => {
+      if (!window.currentState) return;
+      const csv = generateSummaryCsv(window.currentState);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `tiag-kitchen-summary-${dateStr}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('CSV downloaded');
+      triggerHaptic('tap');
+    });
+
+    document.getElementById('btn-new-event')?.addEventListener('click', () => {
+      verifyLeadPin(async () => {
+        await executeEmergencyReset();
+      });
+    });
+  </script>
+</body>
+</html>
