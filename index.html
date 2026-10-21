@@ -112,12 +112,14 @@
     }
 
     /* ==========================================================================
-       3. Layout Containers & Screens
+       3. Layout Containers & Screens (Fit-to-Screen Responsive)
        ========================================================================== */
     #app-root {
       width: 100%;
       height: 100%;
-      max-width: 500px;
+      height: 100dvh;
+      max-height: 100dvh;
+      max-width: 100%;
       margin: 0 auto;
       position: relative;
       overflow: hidden;
@@ -126,25 +128,57 @@
       background: var(--surface-body);
     }
 
+    @media (min-width: 768px) and (orientation: portrait) {
+      #app-root {
+        max-width: 660px;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      #app-root {
+        max-width: 980px;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.45);
+      }
+    }
+
     .app-screen {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
+      max-height: 100%;
       display: none;
       flex-direction: column;
       background-color: var(--surface-body);
       overflow-y: auto;
+      overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
+      overscroll-behavior: none;
     }
 
     .app-screen.active {
       display: flex;
     }
 
+    .app-screen.entering {
+      animation: screenEnter 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes screenEnter {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
     /* ==========================================================================
-       4. Common UI Atoms & Primitives
+       4. Common UI Atoms & Primitives with Tactile Feedback
        ========================================================================== */
     .btn {
       display: inline-flex;
@@ -157,14 +191,17 @@
       outline: none;
       cursor: pointer;
       border-radius: var(--radius-pill);
-      transition: transform 120ms ease, opacity 120ms ease, background-color 150ms ease;
+      transition: transform 120ms cubic-bezier(0.2, 0, 0, 1), opacity 120ms ease, background-color 150ms ease, box-shadow 150ms ease;
       min-height: 48px;
       padding: 12px 24px;
       text-decoration: none;
+      position: relative;
+      overflow: hidden;
     }
 
-    .btn:active {
-      transform: scale(0.97);
+    .btn:active,
+    .btn.pressed {
+      transform: scale(0.96) translateY(1px);
     }
 
     .btn-gradient {
@@ -173,15 +210,28 @@
       box-shadow: 0 4px 14px rgba(250, 43, 46, 0.3);
     }
 
+    .btn-gradient:hover:not(:disabled) {
+      box-shadow: 0 6px 20px rgba(250, 43, 46, 0.45);
+    }
+
     .btn-purple {
       background: var(--brand-purple);
       color: var(--text-inverted);
+      box-shadow: 0 4px 14px rgba(127, 73, 154, 0.25);
+    }
+
+    .btn-purple:hover:not(:disabled) {
+      box-shadow: 0 6px 18px rgba(127, 73, 154, 0.4);
     }
 
     .btn-outline {
       background: #FFFFFF;
       color: var(--text-primary);
       border: 2px solid var(--surface-border);
+    }
+
+    .btn-outline:active {
+      background: #F1F5F9;
     }
 
     .btn:disabled {
@@ -220,9 +270,10 @@
       background: #FFFFFF;
       border: 2px solid var(--brand-purple);
       border-radius: var(--radius-lg);
-      padding: 16px;
-      margin-bottom: 16px;
+      padding: clamp(10px, 1.8vh, 16px);
+      margin-bottom: clamp(8px, 1.4vh, 14px);
       box-shadow: 0 4px 16px rgba(127, 73, 154, 0.12);
+      flex-shrink: 0;
     }
 
     .pulse-dot {
@@ -259,6 +310,7 @@
       letter-spacing: 0.04em;
       text-transform: uppercase;
       line-height: 1;
+      transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1), background-color 200ms ease;
     }
 
     .status-badge svg {
@@ -297,6 +349,11 @@
       overflow: hidden;
       flex-shrink: 0;
       position: relative;
+      transition: transform 150ms ease;
+    }
+
+    .logo-slot:active {
+      transform: scale(0.96);
     }
 
     .logo-slot img {
@@ -322,44 +379,54 @@
     }
 
     /* ==========================================================================
-       5. Screen 1: Setup View Styling
+       5. Screen 1: Setup View Styling (Adaptive Fit-to-Screen)
        ========================================================================== */
     #screen-setup {
       background: var(--surface-body);
+      overflow-y: auto;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    #screen-setup.active {
+      display: flex;
     }
 
     .setup-hero {
       background: var(--brand-gradient);
-      padding: calc(var(--safe-top) + 24px) 24px 32px 24px;
-      border-bottom-left-radius: 28px;
-      border-bottom-right-radius: 28px;
+      padding: calc(var(--safe-top) + clamp(8px, 1.8vh, 18px)) 20px clamp(10px, 2.2vh, 22px) 20px;
+      border-bottom-left-radius: clamp(18px, 3vh, 28px);
+      border-bottom-right-radius: clamp(18px, 3vh, 28px);
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
       color: var(--text-inverted);
-      box-shadow: 0 8px 24px rgba(250, 43, 46, 0.25);
+      box-shadow: 0 6px 20px rgba(250, 43, 46, 0.22);
+      flex-shrink: 0;
     }
 
     .setup-hero .logo-slot {
-      width: 92px;
-      height: 92px;
-      margin-bottom: 12px;
+      width: clamp(48px, 8vh, 76px);
+      height: clamp(48px, 8vh, 76px);
+      margin-bottom: clamp(4px, 1vh, 8px);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     }
 
     .setup-hero h1 {
-      font-size: 1.625rem;
+      font-size: clamp(1.2rem, 2.8vh, 1.55rem);
       font-weight: var(--font-weight-black);
       letter-spacing: -0.01em;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
     .setup-hero p {
-      font-size: 0.875rem;
+      font-size: clamp(0.72rem, 1.6vh, 0.85rem);
       opacity: 0.92;
       font-weight: var(--font-weight-normal);
-      margin-bottom: 14px;
+      margin-bottom: clamp(6px, 1.2vh, 10px);
     }
 
     .offline-chip {
@@ -368,9 +435,9 @@
       gap: 6px;
       background: rgba(0, 0, 0, 0.35);
       backdrop-filter: blur(8px);
-      padding: 5px 12px;
+      padding: clamp(3px, 0.6vh, 5px) 12px;
       border-radius: var(--radius-pill);
-      font-size: 0.75rem;
+      font-size: clamp(0.68rem, 1.4vh, 0.75rem);
       font-weight: var(--font-weight-medium);
       color: #FFFFFF;
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -382,23 +449,54 @@
 
     .setup-card {
       background: var(--surface-paper);
-      margin: -16px 16px 24px 16px;
+      margin: clamp(-10px, -1.5vh, -4px) clamp(10px, 2.5vw, 16px) clamp(8px, 1.5vh, 16px) clamp(10px, 2.5vw, 16px);
       border-radius: var(--radius-xl);
-      padding: 24px 20px;
+      padding: clamp(10px, 1.8vh, 18px) clamp(12px, 2.5vw, 18px);
       border: 2px solid var(--surface-border);
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: clamp(6px, 1.1vh, 12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      flex-shrink: 1;
+    }
+
+    .setup-grid-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 350px) and (orientation: portrait) {
+      .setup-grid-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+    }
+
+    .setup-secondary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .setup-secondary-actions .btn {
+      min-height: clamp(34px, 4.5vh, 40px);
+      font-size: clamp(0.72rem, 1.4vh, 0.8rem);
+      padding: 4px 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: clamp(2px, 0.5vh, 5px);
     }
 
     .form-group label {
-      font-size: 0.8125rem;
+      font-size: clamp(0.68rem, 1.3vh, 0.78rem);
       font-weight: var(--font-weight-bold);
       color: var(--text-secondary);
       text-transform: uppercase;
@@ -407,46 +505,50 @@
 
     .form-input {
       width: 100%;
-      height: 52px;
-      padding: 0 16px;
+      height: clamp(36px, 4.8vh, 48px);
+      padding: 0 12px;
       border-radius: var(--radius-md);
       border: 2px solid var(--surface-border);
       background: #FFFFFF;
       font-family: var(--font-sans);
-      font-size: 1rem;
+      font-size: clamp(0.85rem, 1.6vh, 1rem);
       font-weight: var(--font-weight-medium);
       color: var(--text-primary);
       outline: none;
-      transition: border-color 150ms ease;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
     }
 
     .form-input:focus {
       border-color: var(--brand-purple);
+      box-shadow: 0 0 0 3px rgba(127, 73, 154, 0.15);
     }
 
     .form-input.count-input {
-      font-size: 1.375rem;
+      font-size: clamp(1.1rem, 2.5vh, 1.375rem);
       font-weight: var(--font-weight-bold);
       letter-spacing: -0.02em;
+      text-align: center;
     }
 
     .counts-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 8px;
     }
 
     .form-help {
-      font-size: 0.75rem;
+      font-size: clamp(0.66rem, 1.2vh, 0.74rem);
       color: var(--text-muted);
     }
 
     /* ==========================================================================
-       6. Screen 2: Serving Dashboard Layout
+       6. Screen 2: Serving Dashboard Layout (Precision Viewport Lock)
        ========================================================================== */
     #screen-serving {
       background: #0A0A0A;
       overflow: hidden;
+      height: 100%;
+      max-height: 100dvh;
     }
 
     .serving-container {
@@ -456,12 +558,13 @@
       flex-direction: column;
       background: #0A0A0A;
       position: relative;
+      overflow: hidden;
     }
 
-    /* Header Bar (~8% Height) */
+    /* Header Bar (~7-8% Height) */
     .serving-header {
       background: var(--surface-header);
-      padding: calc(var(--safe-top) + 8px) 16px 10px 16px;
+      padding: calc(var(--safe-top) + clamp(4px, 1vh, 8px)) 16px clamp(6px, 1vh, 10px) 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -478,19 +581,19 @@
     }
 
     .serving-header .logo-slot {
-      width: 38px;
-      height: 38px;
+      width: clamp(34px, 5vh, 42px);
+      height: clamp(34px, 5vh, 42px);
     }
 
     .serving-header .header-titles h2 {
-      font-size: 1.05rem;
+      font-size: clamp(0.95rem, 2vh, 1.15rem);
       font-weight: var(--font-weight-bold);
       color: #FFFFFF;
       line-height: 1.1;
     }
 
     .serving-header .header-titles span {
-      font-size: 0.72rem;
+      font-size: clamp(0.65rem, 1.3vh, 0.75rem);
       color: #94A3B8;
       display: block;
     }
@@ -498,12 +601,12 @@
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: clamp(6px, 1vw, 10px);
     }
 
     .btn-icon {
-      width: 44px;
-      height: 44px;
+      width: clamp(38px, 5.2vh, 44px);
+      height: clamp(38px, 5.2vh, 44px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -512,34 +615,40 @@
       border: 1px solid #333333;
       color: #FFFFFF;
       cursor: pointer;
+      transition: background 150ms ease, transform 100ms ease;
     }
 
-    /* Secondary Row (~20% Height) */
+    .btn-icon:active {
+      transform: scale(0.94);
+      background: #262626;
+    }
+
+    /* Secondary Row (~18-20% Height in Portrait) */
     .serving-secondary {
-      padding: 10px 12px;
+      padding: clamp(6px, 1vh, 10px) 12px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
       flex-shrink: 0;
-      height: 20%;
-      min-height: 96px;
+      height: clamp(84px, 19vh, 120px);
     }
 
     .secondary-card {
       background: var(--status-ok-surface);
       border: 3px solid var(--status-ok-border);
       border-radius: var(--radius-lg);
-      padding: 10px 12px;
+      padding: clamp(8px, 1.2vh, 12px);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
       cursor: pointer;
-      transition: transform 80ms ease, background-color 200ms ease;
+      transition: transform 80ms ease, background-color 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
     }
 
-    .secondary-card.pressed {
-      transform: scale(0.97);
+    .secondary-card.pressed,
+    .secondary-card:active {
+      transform: scale(0.97) translateY(1px);
     }
 
     .secondary-card .card-top {
@@ -549,7 +658,7 @@
     }
 
     .secondary-card .card-label {
-      font-size: 0.75rem;
+      font-size: clamp(0.68rem, 1.4vh, 0.78rem);
       font-weight: var(--font-weight-black);
       letter-spacing: 0.05em;
       text-transform: uppercase;
@@ -557,7 +666,7 @@
     }
 
     .secondary-card .card-number {
-      font-size: clamp(2rem, 8vw, 2.75rem);
+      font-size: clamp(1.75rem, 5vh, 2.75rem);
       font-weight: var(--font-weight-black);
       line-height: 1;
       color: var(--status-ok-text);
@@ -568,7 +677,7 @@
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      font-size: 0.7rem;
+      font-size: clamp(0.65rem, 1.3vh, 0.72rem);
       font-weight: var(--font-weight-medium);
       color: var(--status-ok-text);
       opacity: 0.85;
@@ -582,11 +691,17 @@
       font-size: 0.7rem;
       border: none;
       cursor: pointer;
+      transition: transform 100ms ease, background 150ms ease;
     }
 
-    /* Primary Counter (~60% Height) */
+    .chip-multi:active {
+      transform: scale(0.94);
+      background: rgba(0, 0, 0, 0.22);
+    }
+
+    /* Primary Counter (~58-60% Height in Portrait) */
     .serving-primary {
-      padding: 0 12px 10px 12px;
+      padding: 0 12px clamp(6px, 1vh, 10px) 12px;
       flex: 1;
       display: flex;
       min-height: 0;
@@ -602,14 +717,15 @@
       flex-direction: column;
       justify-content: space-between;
       align-items: center;
-      padding: 18px 20px 20px 20px;
+      padding: clamp(12px, 2vh, 20px);
       cursor: pointer;
       position: relative;
-      transition: transform 80ms ease, background-color 200ms ease, border-color 200ms ease;
+      transition: transform 80ms ease, background-color 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
     }
 
-    .primary-button.pressed {
-      transform: scale(0.975);
+    .primary-button.pressed,
+    .primary-button:active {
+      transform: scale(0.975) translateY(1px);
     }
 
     .primary-button .primary-top {
@@ -620,7 +736,7 @@
     }
 
     .primary-button .primary-title {
-      font-size: 1.1rem;
+      font-size: clamp(0.95rem, 2.2vh, 1.15rem);
       font-weight: var(--font-weight-black);
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -636,7 +752,7 @@
     }
 
     .primary-button .hero-numeral {
-      font-size: clamp(4.5rem, 20vw, 7.5rem);
+      font-size: clamp(3rem, 11vh, 7.5rem);
       font-weight: var(--font-weight-black);
       line-height: 0.9;
       color: var(--status-ok-text);
@@ -644,27 +760,27 @@
     }
 
     .primary-button .hero-label {
-      font-size: 1rem;
+      font-size: clamp(0.8rem, 1.8vh, 1rem);
       font-weight: var(--font-weight-bold);
       letter-spacing: 0.1em;
       color: var(--status-ok-text);
       opacity: 0.8;
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
     .primary-button .primary-bottom {
       width: 100%;
       display: flex;
       justify-content: space-between;
-      font-size: 0.875rem;
+      font-size: clamp(0.75rem, 1.6vh, 0.875rem);
       font-weight: var(--font-weight-medium);
       color: var(--status-ok-text);
       opacity: 0.85;
     }
 
-    /* Footer Action Bar (~12% Height) */
+    /* Footer Action Bar (~12-14% Height in Portrait) */
     .serving-footer {
-      padding: 8px 12px calc(var(--safe-bottom) + 8px) 12px;
+      padding: clamp(6px, 1vh, 8px) 12px calc(var(--safe-bottom) + clamp(6px, 1vh, 8px)) 12px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
@@ -673,18 +789,19 @@
     }
 
     .serving-footer .btn {
-      min-height: 54px;
-      font-size: 0.95rem;
+      min-height: clamp(48px, 6.5vh, 56px);
+      font-size: clamp(0.85rem, 1.8vh, 0.95rem);
     }
 
     /* ==========================================================================
-       7. Multi-Sensory Status State Styling
+       7. Multi-Sensory Status State Styling (Quarantine Preserved)
        ========================================================================== */
     /* LOW STATE */
     .state-low {
       background: var(--status-low-surface) !important;
       border-color: var(--status-low-border) !important;
       color: var(--status-low-text) !important;
+      animation: pulse-low 3s infinite ease-in-out;
     }
     .state-low .card-label,
     .state-low .card-number,
@@ -730,20 +847,25 @@
 
     @keyframes pulse-critical {
       0%, 100% {
-        box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.4);
+        box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.45), 0 0 18px rgba(176, 1, 1, 0.35);
       }
       50% {
-        box-shadow: 0 0 0 10px rgba(255, 77, 77, 0);
+        box-shadow: 0 0 0 12px rgba(255, 77, 77, 0), 0 0 32px rgba(255, 77, 77, 0.6);
       }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .state-critical,
-      .num-bump {
-        animation: none !important;
+    @keyframes pulse-low {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(245, 165, 36, 0.35);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(245, 165, 36, 0);
       }
     }
 
+    /* ==========================================================================
+       Interactive Micro-Animations
+       ========================================================================== */
     @keyframes num-bump {
       0% { transform: scale(1); }
       50% { transform: scale(1.08); }
@@ -752,7 +874,208 @@
 
     .num-bump {
       display: inline-block;
-      animation: num-bump 140ms ease-out;
+      animation: num-punch-down 170ms cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    @keyframes num-punch-down {
+      0% { transform: translateY(-7px) scale(1.12); filter: brightness(1.22); }
+      45% { transform: translateY(2px) scale(0.97); }
+      100% { transform: translateY(0) scale(1); filter: brightness(1); }
+    }
+
+    .num-restock {
+      display: inline-block;
+      animation: num-spring-up 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes num-spring-up {
+      0% { transform: translateY(8px) scale(1.16); filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.7)); }
+      50% { transform: translateY(-2px) scale(0.98); }
+      100% { transform: translateY(0) scale(1); filter: none; }
+    }
+
+    .boundary-shake {
+      animation: zero-boundary-shake 280ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    }
+
+    @keyframes zero-boundary-shake {
+      10%, 90% { transform: translate3d(-2px, 0, 0); }
+      20%, 80% { transform: translate3d(4px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    .badge-pop-anim {
+      animation: badge-pop 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes badge-pop {
+      0% { transform: scale(0.65); opacity: 0; }
+      60% { transform: scale(1.14); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    #btn-undo:not(:disabled) {
+      animation: undo-ready 3s infinite ease-in-out;
+    }
+
+    @keyframes undo-ready {
+      0%, 100% { box-shadow: 0 2px 10px rgba(127, 73, 154, 0.3); }
+      50% { box-shadow: 0 4px 18px rgba(127, 73, 154, 0.6); }
+    }
+
+    .btn-undo-spinning svg {
+      animation: spin-undo 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes spin-undo {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(-360deg); }
+    }
+
+    .holding-tension {
+      animation: hold-shiver 90ms infinite linear !important;
+    }
+
+    @keyframes hold-shiver {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(-1px, 1px); }
+      50% { transform: translate(1px, -1px); }
+      75% { transform: translate(-1px, -1px); }
+      100% { transform: translate(1px, 1px); }
+    }
+
+    /* ==========================================================================
+       Landscape & Tablet Command Workstation Layout
+       ========================================================================== */
+    @media (orientation: landscape) and (max-height: 560px), (min-width: 900px) and (orientation: landscape) {
+      .serving-container {
+        display: grid;
+        grid-template-columns: 1.35fr 1fr;
+        grid-template-rows: auto 1fr auto;
+        grid-template-areas:
+          "header header"
+          "primary secondary"
+          "primary footer";
+        height: 100%;
+        overflow: hidden;
+      }
+
+      .serving-header {
+        grid-area: header;
+        padding: calc(var(--safe-top) + 4px) 14px 6px 14px;
+      }
+
+      .serving-primary {
+        grid-area: primary;
+        padding: 6px 6px 8px 12px;
+        height: 100%;
+        min-height: 0;
+      }
+
+      .serving-secondary {
+        grid-area: secondary;
+        padding: 6px 12px 4px 6px;
+        height: 100%;
+        min-height: 0;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .serving-footer {
+        grid-area: footer;
+        padding: 4px 12px calc(var(--safe-bottom) + 6px) 6px;
+        gap: 8px;
+      }
+
+      .primary-button .hero-numeral {
+        font-size: clamp(2.6rem, 16vh, 4.8rem);
+      }
+
+      .secondary-card .card-number {
+        font-size: clamp(1.6rem, 9vh, 2.4rem);
+      }
+
+      /* Setup Screen Landscape 2-Column Split */
+      #screen-setup {
+        flex-direction: row;
+        align-items: stretch;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      #screen-setup .setup-hero {
+        width: 36%;
+        max-width: 300px;
+        border-radius: 0 20px 20px 0;
+        padding: calc(var(--safe-top) + 8px) 14px calc(var(--safe-bottom) + 8px) 14px;
+        justify-content: center;
+      }
+
+      #screen-setup .setup-card {
+        flex: 1;
+        margin: 8px 12px 8px 8px;
+        padding: 10px 14px;
+        max-height: calc(100% - 16px);
+        overflow-y: auto;
+        gap: 6px;
+      }
+
+      /* Summary Screen Landscape 2-Column Split */
+      #screen-summary {
+        flex-direction: row;
+        align-items: stretch;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      #screen-summary .setup-hero {
+        width: 36%;
+        max-width: 300px;
+        border-radius: 0 20px 20px 0;
+        padding: calc(var(--safe-top) + 8px) 14px calc(var(--safe-bottom) + 8px) 14px;
+        justify-content: center;
+      }
+
+      #screen-summary .setup-card {
+        flex: 1;
+        margin: 8px 12px 8px 8px;
+        padding: 10px 14px;
+        max-height: calc(100% - 16px);
+        overflow-y: auto;
+      }
+
+      /* Centered Modal Bottom Sheet in Landscape */
+      .sheet-backdrop {
+        align-items: center;
+      }
+
+      .bottom-sheet {
+        border-radius: var(--radius-xl);
+        max-width: 480px;
+        max-height: 88dvh;
+        margin: auto;
+        border: 2px solid var(--surface-border);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .state-critical,
+      .state-low,
+      #btn-undo:not(:disabled),
+      .num-bump,
+      .num-restock,
+      .boundary-shake,
+      .badge-pop-anim,
+      .btn-undo-spinning svg,
+      .holding-tension,
+      .chip-number.selected,
+      .app-screen.entering,
+      .sheet-backdrop.active,
+      .bottom-sheet {
+        animation: none !important;
+        transition: none !important;
+      }
     }
 
     /* ==========================================================================
@@ -774,6 +1097,12 @@
 
     .sheet-backdrop.active {
       display: flex;
+      animation: backdropFadeIn 200ms ease forwards;
+    }
+
+    @keyframes backdropFadeIn {
+      from { opacity: 0; backdrop-filter: blur(0px); }
+      to { opacity: 1; backdrop-filter: blur(4px); }
     }
 
     .bottom-sheet {
@@ -782,12 +1111,27 @@
       background: var(--surface-paper);
       border-top-left-radius: 24px;
       border-top-right-radius: 24px;
-      padding: 16px 20px calc(var(--safe-bottom) + 20px) 20px;
+      padding: clamp(12px, 1.8vh, 16px) clamp(14px, 3vw, 20px) calc(var(--safe-bottom) + clamp(14px, 2vh, 20px)) clamp(14px, 3vw, 20px);
       border-top: 2px solid var(--surface-border);
       box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.3);
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: clamp(10px, 1.6vh, 18px);
+      max-height: min(88dvh, 88%);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      animation: sheetSpringUp 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes sheetSpringUp {
+      from {
+        transform: translateY(100%);
+        opacity: 0.6;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     .sheet-handle {
@@ -828,12 +1172,24 @@
       justify-content: center;
       cursor: pointer;
       color: var(--text-primary);
+      transition: transform 120ms ease, border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+    }
+
+    .chip-number:active {
+      transform: scale(0.92);
     }
 
     .chip-number.selected {
       border-color: var(--brand-purple);
       background: rgba(127, 73, 154, 0.1);
       color: var(--brand-purple);
+      animation: chipPop 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes chipPop {
+      0% { transform: scale(0.92); }
+      60% { transform: scale(1.07); }
+      100% { transform: scale(1); }
     }
 
     .multi-cat-btn.active,
@@ -842,17 +1198,18 @@
       background: var(--brand-purple) !important;
       color: #FFFFFF !important;
       border-color: var(--brand-purple) !important;
+      animation: chipPop 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     /* Summary Table Styling (Sprint 3.6) */
     .summary-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.825rem;
+      font-size: clamp(0.75rem, 1.4vh, 0.825rem);
     }
     .summary-table th,
     .summary-table td {
-      padding: 8px 6px;
+      padding: clamp(5px, 0.8vh, 8px) 6px;
       text-align: right;
       border-bottom: 1px solid var(--surface-border);
     }
@@ -1031,14 +1388,16 @@
       </div>
 
       <form id="form-setup" class="setup-card" onsubmit="event.preventDefault();">
-        <div class="form-group">
-          <label for="input-event-name">Event Name (Optional)</label>
-          <input type="text" id="input-event-name" class="form-input" placeholder="e.g. TIAG-2026 Camp Meeting" maxlength="60" autocomplete="off">
-        </div>
+        <div class="setup-grid-row">
+          <div class="form-group">
+            <label for="input-event-name">Event Name (Optional)</label>
+            <input type="text" id="input-event-name" class="form-input" placeholder="e.g. TIAG-2026 Camp Meeting" maxlength="60" autocomplete="off">
+          </div>
 
-        <div class="form-group">
-          <label for="input-station-name">Station Name (Optional)</label>
-          <input type="text" id="input-station-name" class="form-input" placeholder="e.g. Station A - Main Tent" maxlength="40" autocomplete="off">
+          <div class="form-group">
+            <label for="input-station-name">Station Name (Optional)</label>
+            <input type="text" id="input-station-name" class="form-input" placeholder="e.g. Station A - Main Tent" maxlength="40" autocomplete="off">
+          </div>
         </div>
 
         <div class="form-group">
@@ -1067,16 +1426,15 @@
           <span class="form-help">Protects Restock, Adjust, and Emergency Reset.</span>
         </div>
 
-        <button type="button" id="btn-start-serving" class="btn btn-gradient" style="margin-top: 8px;" disabled>
+        <button type="button" id="btn-start-serving" class="btn btn-gradient" style="margin-top: 4px;" disabled>
           START SERVING
         </button>
 
-        <button type="button" id="btn-clear-setup" class="btn btn-outline" style="min-height: 40px; font-size: 0.8rem; padding: 6px 14px; width: 100%; margin-top: 8px;">
-          Clear / Reset Inputs
-        </button>
-
-        <div style="text-align: center; margin-top: 4px;">
-          <button type="button" id="btn-show-install-guide" class="btn btn-outline" style="min-height: 40px; font-size: 0.8rem; padding: 6px 14px;">
+        <div class="setup-secondary-actions">
+          <button type="button" id="btn-clear-setup" class="btn btn-outline">
+            Clear / Reset Inputs
+          </button>
+          <button type="button" id="btn-show-install-guide" class="btn btn-outline">
             Install to Home Screen Guide
           </button>
         </div>
@@ -1423,14 +1781,16 @@
           <!-- Dynamically populated per category -->
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
-          <button type="button" id="btn-copy-summary" class="btn btn-outline">
-            Copy Summary as Text
-          </button>
-          <button type="button" id="btn-download-csv" class="btn btn-outline">
-            Download CSV Report
-          </button>
-          <button type="button" id="btn-new-event" class="btn btn-gradient" style="margin-top: 8px;">
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button type="button" id="btn-copy-summary" class="btn btn-outline" style="min-height: 42px; font-size: 0.8rem; padding: 4px 8px;">
+              Copy Summary as Text
+            </button>
+            <button type="button" id="btn-download-csv" class="btn btn-outline" style="min-height: 42px; font-size: 0.8rem; padding: 4px 8px;">
+              Download CSV Report
+            </button>
+          </div>
+          <button type="button" id="btn-new-event" class="btn btn-gradient" style="min-height: 46px; font-size: 0.95rem; margin-top: 2px;">
             START NEW EVENT
           </button>
         </div>
@@ -1540,9 +1900,15 @@
 
     // 6. Base Screen Switcher (Foundation Helper)
     window.switchScreen = function(screenId) {
-      document.querySelectorAll('.app-screen').forEach((el) => el.classList.remove('active'));
+      document.querySelectorAll('.app-screen').forEach((el) => {
+        el.classList.remove('active');
+        el.classList.remove('entering');
+      });
       const target = document.getElementById(screenId);
-      if (target) target.classList.add('active');
+      if (target) {
+        target.classList.add('active');
+        target.classList.add('entering');
+      }
       if (screenId === 'screen-serving') {
         requestWakeLock();
       } else {
@@ -1975,8 +2341,17 @@
       const badgeEl = document.getElementById(badgeId);
       if (!cardEl || !badgeEl) return;
 
+      const prevStatus = cardEl.getAttribute('data-status') || 'ok';
+      cardEl.setAttribute('data-status', status);
+
       cardEl.classList.remove('state-low', 'state-critical', 'state-finished');
       badgeEl.className = 'status-badge ' + status;
+
+      if (prevStatus !== status) {
+        badgeEl.classList.remove('badge-pop-anim');
+        void badgeEl.offsetWidth;
+        badgeEl.classList.add('badge-pop-anim');
+      }
 
       const iconUse = badgeEl.querySelector('svg use');
       const textSpan = badgeEl.querySelector('span');
@@ -2105,6 +2480,14 @@
 
       renderDashboard(window.currentState);
       updateUndoButton();
+
+      const btnUndo = document.getElementById('btn-undo');
+      if (btnUndo) {
+        btnUndo.classList.remove('btn-undo-spinning');
+        void btnUndo.offsetWidth;
+        btnUndo.classList.add('btn-undo-spinning');
+        setTimeout(() => btnUndo.classList.remove('btn-undo-spinning'), 340);
+      }
     }
 
     document.getElementById('btn-undo')?.addEventListener('click', performUndo);
@@ -2112,13 +2495,13 @@
     // =========================================================================
     // 15. Decrement Operations & Touch Engine Decoupling
     // =========================================================================
-    function triggerNumeralBump(elementId) {
+    function triggerNumeralBump(elementId, type = 'decrement') {
       const el = document.getElementById(elementId);
       if (!el) return;
-      el.classList.remove('num-bump');
+      el.classList.remove('num-bump', 'num-restock');
       void el.offsetWidth;
-      el.classList.add('num-bump');
-      setTimeout(() => el.classList.remove('num-bump'), 160);
+      el.classList.add(type === 'restock' ? 'num-restock' : 'num-bump');
+      setTimeout(() => el.classList.remove('num-bump', 'num-restock'), 240);
     }
 
     function decrementCategory(catKey, delta = 1) {
@@ -2126,6 +2509,14 @@
       const cat = window.currentState.categories[catKey];
       if (!cat || cat.left <= 0) {
         triggerHaptic('finished');
+        const cardMap = { participants: 'card-participants', workers: 'card-workers', pastors: 'card-pastors' };
+        const cardEl = document.getElementById(cardMap[catKey]);
+        if (cardEl) {
+          cardEl.classList.remove('boundary-shake');
+          void cardEl.offsetWidth;
+          cardEl.classList.add('boundary-shake');
+          setTimeout(() => cardEl.classList.remove('boundary-shake'), 300);
+        }
         return; // Zero boundary lock: no decrement at 0
       }
 
@@ -2610,6 +3001,12 @@
       });
 
       renderDashboard(window.currentState);
+      const restockNumMap = {
+        participants: 'num-participants-left',
+        workers: 'num-workers-left',
+        pastors: 'num-pastors-left'
+      };
+      if (restockNumMap[currentRestockCat]) triggerNumeralBump(restockNumMap[currentRestockCat], 'restock');
       triggerHaptic('tap');
       closeAllSheets();
     });
@@ -2689,6 +3086,12 @@
       });
 
       renderDashboard(window.currentState);
+      const adjustNumMap = {
+        participants: 'num-participants-left',
+        workers: 'num-workers-left',
+        pastors: 'num-pastors-left'
+      };
+      if (adjustNumMap[currentAdjustCat]) triggerNumeralBump(adjustNumMap[currentAdjustCat], delta >= 0 ? 'restock' : 'decrement');
       triggerHaptic('tap');
       closeAllSheets();
     });
@@ -2769,6 +3172,7 @@
 
       const startResetHold = () => {
         startTime = Date.now();
+        btn.classList.add('holding-tension');
         if (label) label.textContent = 'Keep holding...';
         timer = setInterval(() => {
           const elapsed = Date.now() - startTime;
@@ -2778,6 +3182,7 @@
           if (elapsed >= 2000) {
             clearInterval(timer);
             timer = null;
+            btn.classList.remove('holding-tension');
             if (fill) fill.style.width = '0%';
             if (label) label.textContent = 'Hold 2s to Reset Session';
             
@@ -2789,6 +3194,7 @@
       };
 
       const cancelResetHold = () => {
+        btn.classList.remove('holding-tension');
         if (timer) {
           clearInterval(timer);
           timer = null;
