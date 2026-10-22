@@ -32,6 +32,9 @@
 | **2026-10-20** | UX & Routing | **Home Startup with Active Session Banner & Visible Reset Button** | Cold boot now always opens to Home (Setup) screen with offline notification and displays an Active Session in Progress banner with Resume and 2s-Hold-to-Reset options. Serving dashboard also features a prominent Reset button in header. |
 | **2026-10-20** | Deployment | **GitHub Repository & GitHub Pages Ready** | Initialized repository `dgbenga/tiag-kitchen`, pushed all production code to `main` branch, tuned Service Worker precaching for subpath resilience, and prepared for instant GitHub Pages static hosting. |
 | **2026-10-21** | UX & Ergonomics | **Fit-to-Screen Responsiveness & Tactile Animation Suite** | Added 100dvh sizing, fluid clamps, and zero vertical scrollbar across all mobile, tablet, and landscape screens. Implemented dual-column landscape layout and tactile micro-interaction animations. |
+| **2026-10-21** | Feature & UX | **Food Type & Device Time Auto-Sync** | Replaced generic station name with Food Type/Meal Name. Added `<input type="time">` field that automatically seeds local phone time and features a one-tap 'Now' sync button. Carried through header subline and summary report. |
+| **2026-10-21** | Analytics & Reporting | **Percentages & Visual Distribution in Summary** | Upgraded End-of-Service Summary with high-level KPI cards with bold percentages (`TOTAL SERVED (XX.X%)`, `REMAINING LEFT (XX.X%)`), dual-color progress bar, category table `% Served` and `% Remaining` pills, and served distribution share bars. |
+| **2026-10-21** | Layout & Responsiveness | **Unified 2-Column Desktop Architecture** | Encapsulated active session banner and form into `.setup-main-content` and summary card into `.summary-main-content`. Eliminated 3-column widescreen squishing, prevented button truncation, and preserved 100% responsive fit across all device viewports. |
 
 ---
 
