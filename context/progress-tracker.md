@@ -35,6 +35,7 @@
 | **2026-10-21** | Feature & UX | **Food Type & Device Time Auto-Sync** | Replaced generic station name with Food Type/Meal Name. Added `<input type="time">` field that automatically seeds local phone time and features a one-tap 'Now' sync button. Carried through header subline and summary report. |
 | **2026-10-21** | Analytics & Reporting | **Percentages & Visual Distribution in Summary** | Upgraded End-of-Service Summary with high-level KPI cards with bold percentages (`TOTAL SERVED (XX.X%)`, `REMAINING LEFT (XX.X%)`), dual-color progress bar, category table `% Served` and `% Remaining` pills, and served distribution share bars. |
 | **2026-10-21** | Layout & Responsiveness | **Unified 2-Column Desktop Architecture** | Encapsulated active session banner and form into `.setup-main-content` and summary card into `.summary-main-content`. Eliminated 3-column widescreen squishing, prevented button truncation, and preserved 100% responsive fit across all device viewports. |
+| **2026-10-22** | Feature & UX | **Event Day Field with 'Monday - Day 1' Guidance** | Added optional Day field alongside Event Name on Setup form with `Monday - Day 1` through `Sunday - Day 7` datalist options and subline hint. Integrated Day into Serving subline, Active Session banner, Summary header, amber Day badge, plain-text export, and RFC-4180 CSV export. |
 
 ---
 
