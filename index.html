@@ -137,8 +137,10 @@
 
     @media (min-width: 1024px) {
       #app-root {
-        max-width: 980px;
-        box-shadow: 0 0 50px rgba(0, 0, 0, 0.45);
+        max-width: 1080px;
+        box-shadow: 0 0 60px rgba(0, 0, 0, 0.18);
+        border-left: 1px solid var(--surface-border);
+        border-right: 1px solid var(--surface-border);
       }
     }
 
@@ -447,46 +449,73 @@
       color: #A7F3D0;
     }
 
+    .setup-main-content,
+    .summary-main-content {
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      padding: clamp(10px, 1.8vh, 18px) clamp(12px, 3vw, 20px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(10px, 1.6vh, 14px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .setup-main-content .active-session-card,
+    .setup-main-content .setup-card,
+    .summary-main-content .setup-card {
+      margin: 0;
+      width: 100%;
+      max-width: 100%;
+    }
+
     .setup-card {
       background: var(--surface-paper);
-      margin: clamp(-10px, -1.5vh, -4px) clamp(10px, 2.5vw, 16px) clamp(8px, 1.5vh, 16px) clamp(10px, 2.5vw, 16px);
       border-radius: var(--radius-xl);
-      padding: clamp(10px, 1.8vh, 18px) clamp(12px, 2.5vw, 18px);
+      padding: clamp(12px, 2vh, 20px) clamp(14px, 3vw, 20px);
       border: 2px solid var(--surface-border);
       display: flex;
       flex-direction: column;
-      gap: clamp(6px, 1.1vh, 12px);
+      gap: clamp(8px, 1.4vh, 14px);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-      flex-shrink: 1;
+      flex-shrink: 0;
     }
 
     .setup-grid-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 12px;
     }
 
-    @media (max-width: 350px) and (orientation: portrait) {
+    @media (max-width: 480px) and (orientation: portrait) {
       .setup-grid-row {
         grid-template-columns: 1fr;
-        gap: 6px;
+        gap: 8px;
       }
     }
 
     .setup-secondary-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 4px;
+      gap: 10px;
+      margin-top: 6px;
     }
 
     .setup-secondary-actions .btn {
-      min-height: clamp(34px, 4.5vh, 40px);
-      font-size: clamp(0.72rem, 1.4vh, 0.8rem);
-      padding: 4px 8px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      min-height: clamp(38px, 4.8vh, 46px);
+      font-size: clamp(0.72rem, 1.4vh, 0.82rem);
+      padding: 6px 10px;
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: break-word;
+      line-height: 1.25;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-pill);
     }
 
     .form-group {
@@ -596,6 +625,10 @@
       font-size: clamp(0.65rem, 1.3vh, 0.75rem);
       color: #94A3B8;
       display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: clamp(140px, 35vw, 360px);
     }
 
     .header-actions {
@@ -996,32 +1029,8 @@
         font-size: clamp(1.6rem, 9vh, 2.4rem);
       }
 
-      /* Setup Screen Landscape 2-Column Split */
-      #screen-setup {
-        flex-direction: row;
-        align-items: stretch;
-        padding: 0;
-        overflow: hidden;
-      }
-
-      #screen-setup .setup-hero {
-        width: 36%;
-        max-width: 300px;
-        border-radius: 0 20px 20px 0;
-        padding: calc(var(--safe-top) + 8px) 14px calc(var(--safe-bottom) + 8px) 14px;
-        justify-content: center;
-      }
-
-      #screen-setup .setup-card {
-        flex: 1;
-        margin: 8px 12px 8px 8px;
-        padding: 10px 14px;
-        max-height: calc(100% - 16px);
-        overflow-y: auto;
-        gap: 6px;
-      }
-
-      /* Summary Screen Landscape 2-Column Split */
+      /* Setup & Summary Screens Landscape 2-Column Split */
+      #screen-setup,
       #screen-summary {
         flex-direction: row;
         align-items: stretch;
@@ -1029,20 +1038,40 @@
         overflow: hidden;
       }
 
+      #screen-setup .setup-hero,
       #screen-summary .setup-hero {
-        width: 36%;
-        max-width: 300px;
-        border-radius: 0 20px 20px 0;
-        padding: calc(var(--safe-top) + 8px) 14px calc(var(--safe-bottom) + 8px) 14px;
+        width: 32%;
+        min-width: 280px;
+        max-width: 340px;
+        border-radius: 0 24px 24px 0;
+        padding: calc(var(--safe-top) + 12px) 20px calc(var(--safe-bottom) + 12px) 20px;
         justify-content: center;
+        flex-shrink: 0;
+        height: 100%;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
       }
 
-      #screen-summary .setup-card {
+      .setup-main-content,
+      .summary-main-content {
         flex: 1;
-        margin: 8px 12px 8px 8px;
-        padding: 10px 14px;
-        max-height: calc(100% - 16px);
+        min-width: 0;
+        height: 100%;
+        max-height: 100%;
         overflow-y: auto;
+        overflow-x: hidden;
+        padding: clamp(14px, 2.5vh, 24px) clamp(16px, 2.5vw, 32px);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .setup-main-content .active-session-card,
+      .setup-main-content .setup-card,
+      .summary-main-content .setup-card {
+        width: 100%;
+        max-width: 680px;
+        margin: 0;
       }
 
       /* Centered Modal Bottom Sheet in Landscape */
@@ -1231,6 +1260,229 @@
       border-bottom: none;
       color: var(--brand-purple);
     }
+
+    /* Setup Time Input Styles */
+    .time-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .time-input {
+      flex: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .btn-time-sync {
+      height: clamp(36px, 4.8vh, 48px);
+      padding: 0 10px;
+      border-radius: var(--radius-md);
+      border: 2px solid var(--surface-border);
+      background: #FFFFFF;
+      color: var(--brand-purple);
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: var(--font-weight-bold);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 150ms ease;
+      flex-shrink: 0;
+    }
+    .btn-time-sync:active {
+      transform: scale(0.96);
+      background: rgba(127, 73, 154, 0.08);
+    }
+
+    /* Enhanced Summary Presentation (Food, Time & Percentages) */
+    .summary-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .summary-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      font-size: clamp(0.72rem, 1.4vh, 0.8rem);
+      font-weight: var(--font-weight-medium);
+      background: #FFFFFF;
+      border: 1.5px solid var(--surface-border);
+      color: var(--text-primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .summary-badge.food-badge {
+      background: rgba(127, 73, 154, 0.08);
+      border-color: rgba(127, 73, 154, 0.3);
+      color: var(--brand-purple);
+    }
+    .summary-badge.time-badge {
+      background: rgba(31, 164, 91, 0.08);
+      border-color: rgba(31, 164, 91, 0.3);
+      color: var(--status-ok-text);
+    }
+    .summary-kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .kpi-card {
+      background: #FFFFFF;
+      border: 1.5px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    }
+    .kpi-card.kpi-served {
+      border-color: rgba(31, 164, 91, 0.45);
+      background: linear-gradient(180deg, #FFFFFF 0%, rgba(223, 245, 232, 0.4) 100%);
+    }
+    .kpi-card.kpi-left {
+      border-color: rgba(127, 73, 154, 0.35);
+      background: linear-gradient(180deg, #FFFFFF 0%, rgba(127, 73, 154, 0.08) 100%);
+    }
+    .kpi-label {
+      font-size: 0.65rem;
+      font-weight: var(--font-weight-bold);
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .kpi-main {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+      margin: 4px 0 2px 0;
+    }
+    .kpi-num {
+      font-size: clamp(1.4rem, 3.4vh, 2rem);
+      font-weight: var(--font-weight-black);
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .kpi-pct-badge {
+      font-size: clamp(0.75rem, 1.6vh, 0.875rem);
+      font-weight: var(--font-weight-bold);
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+    }
+    .kpi-served .kpi-pct-badge {
+      background: var(--status-ok-badge);
+      color: var(--status-ok-text);
+    }
+    .kpi-left .kpi-pct-badge {
+      background: rgba(127, 73, 154, 0.15);
+      color: var(--brand-purple);
+    }
+    .kpi-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .overall-progress-bar-wrapper {
+      margin-bottom: 14px;
+    }
+    .overall-progress-bar {
+      width: 100%;
+      height: 10px;
+      border-radius: var(--radius-pill);
+      background: var(--surface-border);
+      overflow: hidden;
+      display: flex;
+    }
+    .overall-progress-bar .progress-fill.served-fill {
+      background: linear-gradient(90deg, #1FA45B, #2ECC71);
+      height: 100%;
+      transition: width 400ms ease;
+    }
+    .overall-progress-bar .progress-fill.left-fill {
+      background: rgba(127, 73, 154, 0.4);
+      height: 100%;
+      transition: width 400ms ease;
+    }
+    .progress-legend {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .progress-legend .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .dot.dot-served { background: #1FA45B; }
+    .dot.dot-left { background: var(--brand-purple); }
+    .pct-pill {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: var(--font-weight-bold);
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .pct-pill.served-pill {
+      background: rgba(31, 164, 91, 0.15);
+      color: var(--status-ok-text);
+    }
+    .pct-pill.left-pill {
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--text-muted);
+    }
+    .pct-pill.total-pill {
+      font-weight: var(--font-weight-black);
+    }
+    .category-distribution-card {
+      background: rgba(0, 0, 0, 0.02);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      margin-top: 12px;
+    }
+    .category-distribution-title {
+      font-size: 0.72rem;
+      font-weight: var(--font-weight-bold);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .distribution-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .distribution-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.74rem;
+    }
+    .dist-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: var(--surface-border);
+      border-radius: var(--radius-pill);
+      margin: 0 10px;
+      overflow: hidden;
+    }
+    .dist-bar-fill {
+      height: 100%;
+      background: var(--brand-purple);
+      border-radius: var(--radius-pill);
+    }
+
     .copy-feedback-toast {
       position: fixed;
       bottom: 24px;
@@ -1312,6 +1564,12 @@
       <path fill="none" stroke="currentColor" stroke-width="1.5" d="M12 6v12M6 12h12"/>
       <circle cx="12" cy="12" r="3" fill="currentColor"/>
     </symbol>
+    <symbol id="icon-food" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/>
+    </symbol>
+    <symbol id="icon-clock" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/>
+    </symbol>
   </svg>
 
   <!-- Multi-Tab Conflict Overlay -->
@@ -1364,81 +1622,94 @@
         </div>
       </header>
 
-      <!-- Active Session Banner / Restore Card -->
-      <div id="banner-active-session" class="active-session-card" style="display: none;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="pulse-dot"></span>
-            <strong style="font-size: 0.95rem; color: var(--text-primary);">Active Service in Progress</strong>
+      <div class="setup-main-content">
+        <!-- Active Session Banner / Restore Card -->
+        <div id="banner-active-session" class="active-session-card" style="display: none;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="pulse-dot"></span>
+              <strong style="font-size: 0.95rem; color: var(--text-primary);">Active Service in Progress</strong>
+            </div>
+            <span id="banner-session-event" style="font-size: 0.75rem; font-weight: var(--font-weight-bold); color: var(--brand-purple);">TIAG-2026</span>
           </div>
-          <span id="banner-session-event" style="font-size: 0.75rem; font-weight: var(--font-weight-bold); color: var(--brand-purple);">TIAG-2026</span>
+          <div id="banner-session-summary" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
+            Remaining: <strong>0</strong> Portions Left
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button type="button" id="btn-banner-resume" class="btn btn-gradient" style="min-height: 48px; font-size: 0.85rem;">
+              Resume Serving
+            </button>
+            <button type="button" id="btn-banner-reset" class="btn btn-outline" style="min-height: 48px; font-size: 0.85rem; color: #DC2626; border-color: #FCA5A5; position: relative; overflow: hidden;">
+              <span id="banner-reset-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: rgba(220, 38, 38, 0.25); pointer-events: none; transition: width 50ms linear;"></span>
+              <span id="banner-reset-text" style="position: relative; z-index: 1; font-weight: var(--font-weight-bold);">Hold 2s to Reset</span>
+            </button>
+          </div>
         </div>
-        <div id="banner-session-summary" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
-          Remaining: <strong>0</strong> Portions Left
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <button type="button" id="btn-banner-resume" class="btn btn-gradient" style="min-height: 48px; font-size: 0.85rem;">
-            Resume Serving
-          </button>
-          <button type="button" id="btn-banner-reset" class="btn btn-outline" style="min-height: 48px; font-size: 0.85rem; color: #DC2626; border-color: #FCA5A5; position: relative; overflow: hidden;">
-            <span id="banner-reset-fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: rgba(220, 38, 38, 0.25); pointer-events: none; transition: width 50ms linear;"></span>
-            <span id="banner-reset-text" style="position: relative; z-index: 1; font-weight: var(--font-weight-bold);">Hold 2s to Reset</span>
-          </button>
-        </div>
-      </div>
 
-      <form id="form-setup" class="setup-card" onsubmit="event.preventDefault();">
-        <div class="setup-grid-row">
+        <form id="form-setup" class="setup-card" onsubmit="event.preventDefault();">
           <div class="form-group">
             <label for="input-event-name">Event Name (Optional)</label>
             <input type="text" id="input-event-name" class="form-input" placeholder="e.g. TIAG-2026 Camp Meeting" maxlength="60" autocomplete="off">
           </div>
 
+          <div class="setup-grid-row">
+            <div class="form-group" style="flex: 1.4;">
+              <label for="input-station-name">Food Type / Meal Name (Optional)</label>
+              <input type="text" id="input-station-name" class="form-input" placeholder="e.g. Jollof Rice & Chicken" maxlength="50" autocomplete="off">
+            </div>
+
+            <div class="form-group" style="flex: 1;">
+              <label for="input-service-time">Service / Meal Time</label>
+              <div class="time-input-wrapper">
+                <input type="time" id="input-service-time" class="form-input time-input" aria-label="Service or Meal Time">
+                <button type="button" id="btn-sync-time" class="btn-time-sync" title="Sync current phone time" aria-label="Sync with device time">
+                  <svg class="icon" style="width: 14px; height: 14px;"><use href="#icon-clock"/></svg>
+                  <span>Now</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="form-group">
-            <label for="input-station-name">Station Name (Optional)</label>
-            <input type="text" id="input-station-name" class="form-input" placeholder="e.g. Station A - Main Tent" maxlength="40" autocomplete="off">
+            <label>Starting Portions</label>
+            <div class="counts-grid">
+              <div class="form-group">
+                <label for="count-participants" style="font-size: 0.7rem;">Participants</label>
+                <input type="text" id="count-participants" inputmode="numeric" pattern="[0-9]*" class="form-input count-input" placeholder="0" maxlength="5">
+              </div>
+              <div class="form-group">
+                <label for="count-workers" style="font-size: 0.7rem;">Workers</label>
+                <input type="text" id="count-workers" inputmode="numeric" pattern="[0-9]*" class="form-input count-input" placeholder="0" maxlength="5">
+              </div>
+              <div class="form-group">
+                <label for="count-pastors" style="font-size: 0.7rem;">Pastors</label>
+                <input type="text" id="count-pastors" inputmode="numeric" pattern="[0-9]*" class="form-input count-input" placeholder="0" maxlength="5">
+              </div>
+            </div>
+            <span class="form-help">Enter whole numbers (0 to 99,999). At least one must be above 0.</span>
+            <div id="setup-validation-error" style="display: none; color: #DC2626; font-size: 0.75rem; font-weight: var(--font-weight-bold); margin-top: 4px;"></div>
           </div>
-        </div>
 
-        <div class="form-group">
-          <label>Starting Portions</label>
-          <div class="counts-grid">
-            <div class="form-group">
-              <label for="count-participants" style="font-size: 0.7rem;">Participants</label>
-              <input type="text" id="count-participants" inputmode="numeric" pattern="[0-9]*" class="form-input count-input" placeholder="0" maxlength="5">
-            </div>
-            <div class="form-group">
-              <label for="count-workers" style="font-size: 0.7rem;">Workers</label>
-              <input type="text" id="count-workers" inputmode="numeric" pattern="[0-9]*" class="form-input count-input" placeholder="0" maxlength="5">
-            </div>
-            <div class="form-group">
-              <label for="count-pastors" style="font-size: 0.7rem;">Pastors</label>
-              <input type="text" id="count-pastors" inputmode="numeric" pattern="[0-9]*" class="form-input count-input" placeholder="0" maxlength="5">
-            </div>
+          <div class="form-group">
+            <label for="input-pin">Lead PIN (Optional 4 Digits)</label>
+            <input type="password" id="input-pin" inputmode="numeric" pattern="[0-9]*" class="form-input" placeholder="••••" maxlength="4" autocomplete="off">
+            <span class="form-help">Protects Restock, Adjust, and Emergency Reset.</span>
           </div>
-          <span class="form-help">Enter whole numbers (0 to 99,999). At least one must be above 0.</span>
-          <div id="setup-validation-error" style="display: none; color: #DC2626; font-size: 0.75rem; font-weight: var(--font-weight-bold); margin-top: 4px;"></div>
-        </div>
 
-        <div class="form-group">
-          <label for="input-pin">Lead PIN (Optional 4 Digits)</label>
-          <input type="password" id="input-pin" inputmode="numeric" pattern="[0-9]*" class="form-input" placeholder="••••" maxlength="4" autocomplete="off">
-          <span class="form-help">Protects Restock, Adjust, and Emergency Reset.</span>
-        </div>
-
-        <button type="button" id="btn-start-serving" class="btn btn-gradient" style="margin-top: 4px;" disabled>
-          START SERVING
-        </button>
-
-        <div class="setup-secondary-actions">
-          <button type="button" id="btn-clear-setup" class="btn btn-outline">
-            Clear / Reset Inputs
+          <button type="button" id="btn-start-serving" class="btn btn-gradient" style="margin-top: 4px;" disabled>
+            START SERVING
           </button>
-          <button type="button" id="btn-show-install-guide" class="btn btn-outline">
-            Install to Home Screen Guide
-          </button>
-        </div>
-      </form>
+
+          <div class="setup-secondary-actions">
+            <button type="button" id="btn-clear-setup" class="btn btn-outline">
+              Clear / Reset Inputs
+            </button>
+            <button type="button" id="btn-show-install-guide" class="btn btn-outline">
+              Install to Home Screen Guide
+            </button>
+          </div>
+        </form>
+      </div>
     </section>
 
     <!-- ======================================================================
@@ -1775,24 +2046,26 @@
         <p id="summary-time-range">TIAG-2026</p>
       </header>
 
-      <div class="setup-card" style="margin-top: -12px;">
-        <h3 style="font-size: 1rem; font-weight: var(--font-weight-black); margin-bottom: 12px;">Portion Reconciliation</h3>
-        <div id="summary-metrics-container">
-          <!-- Dynamically populated per category -->
-        </div>
+      <div class="summary-main-content">
+        <div class="setup-card summary-card">
+          <h3 style="font-size: 1.05rem; font-weight: var(--font-weight-black); margin-bottom: 12px;">Portion Reconciliation & Analytics</h3>
+          <div id="summary-metrics-container">
+            <!-- Dynamically populated per category -->
+          </div>
 
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <button type="button" id="btn-copy-summary" class="btn btn-outline" style="min-height: 42px; font-size: 0.8rem; padding: 4px 8px;">
-              Copy Summary as Text
-            </button>
-            <button type="button" id="btn-download-csv" class="btn btn-outline" style="min-height: 42px; font-size: 0.8rem; padding: 4px 8px;">
-              Download CSV Report
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <button type="button" id="btn-copy-summary" class="btn btn-outline" style="min-height: 44px; font-size: 0.82rem; padding: 6px 10px; white-space: normal; line-height: 1.25; text-align: center;">
+                Copy Summary as Text
+              </button>
+              <button type="button" id="btn-download-csv" class="btn btn-outline" style="min-height: 44px; font-size: 0.82rem; padding: 6px 10px; white-space: normal; line-height: 1.25; text-align: center;">
+                Download CSV Report
+              </button>
+            </div>
+            <button type="button" id="btn-new-event" class="btn btn-gradient" style="min-height: 48px; font-size: 0.95rem; margin-top: 4px;">
+              START NEW EVENT
             </button>
           </div>
-          <button type="button" id="btn-new-event" class="btn btn-gradient" style="min-height: 46px; font-size: 0.95rem; margin-top: 2px;">
-            START NEW EVENT
-          </button>
         </div>
       </div>
     </section>
@@ -2265,6 +2538,21 @@
       }
     }
 
+    // Time Automation Helpers (Phone Time by Default)
+    function getDeviceCurrentTime() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+
+    function updateDefaultServiceTime() {
+      const timeInput = document.getElementById('input-service-time');
+      if (timeInput && !timeInput.value) {
+        timeInput.value = getDeviceCurrentTime();
+      }
+    }
+
     // 12. Start Serving Session
     async function startServingSession() {
       primeAudio();
@@ -2277,7 +2565,9 @@
       if (total <= 0) return;
 
       const eventName = document.getElementById('input-event-name').value.trim() || 'TIAG-2026 Camp Meeting';
-      const stationName = document.getElementById('input-station-name').value.trim() || 'Station 1';
+      const foodName = document.getElementById('input-station-name').value.trim() || 'General Meal';
+      const timeInput = document.getElementById('input-service-time');
+      const serviceTime = (timeInput && timeInput.value) ? timeInput.value : getDeviceCurrentTime();
       const pin = pinInput.value.trim();
       const pinHash = await hashPin(pin);
 
@@ -2287,7 +2577,9 @@
         checksum: '',
         event: {
           name: eventName,
-          station: stationName,
+          station: foodName,
+          foodName: foodName,
+          serviceTime: serviceTime,
           date: new Date().toISOString()
         },
         pinHash: pinHash,
@@ -2623,8 +2915,9 @@
       if (!state || !state.categories) return;
       
       const evtName = state.event && state.event.name ? state.event.name : 'TIAG-2026';
-      const stName = state.event && state.event.station ? state.event.station : 'Main Kitchen';
-      document.getElementById('header-event-subline').textContent = `${evtName} · ${stName}`;
+      const foodName = state.event && (state.event.foodName || state.event.station) ? (state.event.foodName || state.event.station) : 'Main Kitchen';
+      const timeStr = state.event && state.event.serviceTime ? ` (${formatTime(state.event.serviceTime)})` : '';
+      document.getElementById('header-event-subline').textContent = `${evtName} · ${foodName}${timeStr}`;
       
       const p = state.categories.participants;
       const w = state.categories.workers;
@@ -2678,6 +2971,7 @@
         } catch(e) {}
       }
       updateUndoButton();
+      updateDefaultServiceTime();
 
       // 3. Read state synchronously from localStorage first
       const rawState = localStorage.getItem('tiag_kitchen_state');
@@ -2711,9 +3005,12 @@
       const w = state.categories.workers?.left ?? 0;
       const pa = state.categories.pastors?.left ?? 0;
       const eventName = state.event?.name || 'TIAG-2026';
+      const foodName = state.event?.foodName || state.event?.station || '';
 
       const eventEl = document.getElementById('banner-session-event');
-      if (eventEl) eventEl.textContent = eventName;
+      if (eventEl) {
+        eventEl.textContent = foodName ? `${eventName} · ${foodName}` : eventName;
+      }
 
       const summaryEl = document.getElementById('banner-session-summary');
       if (summaryEl) {
@@ -3159,6 +3456,7 @@
       
       const form = document.getElementById('form-setup');
       if (form) form.reset();
+      updateDefaultServiceTime();
       const btnStart = document.getElementById('btn-start-serving');
       if (btnStart) btnStart.disabled = true;
       triggerHaptic('finished');
@@ -3251,12 +3549,21 @@
     document.getElementById('btn-clear-setup')?.addEventListener('click', () => {
       const form = document.getElementById('form-setup');
       if (form) form.reset();
+      updateDefaultServiceTime();
       const btnStart = document.getElementById('btn-start-serving');
       if (btnStart) btnStart.disabled = true;
       const err = document.getElementById('setup-validation-error');
       if (err) err.style.display = 'none';
       showToast('Form inputs cleared');
       triggerHaptic('tap');
+    });
+
+    // Time Sync button
+    document.getElementById('btn-sync-time')?.addEventListener('click', () => {
+      const timeInput = document.getElementById('input-service-time');
+      if (timeInput) timeInput.value = getDeviceCurrentTime();
+      triggerHaptic('tap');
+      showToast('Time set to ' + getDeviceCurrentTime());
     });
 
     // End Service Action
@@ -3286,6 +3593,16 @@
     // =========================================================================
     function formatTime(isoStr) {
       if (!isoStr) return '--:--';
+      if (/^\d{2}:\d{2}$/.test(isoStr)) {
+        try {
+          const [h, m] = isoStr.split(':').map(Number);
+          const period = h >= 12 ? 'PM' : 'AM';
+          const h12 = h % 12 || 12;
+          return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+        } catch(e) {
+          return isoStr;
+        }
+      }
       try {
         const d = new Date(isoStr);
         return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -3313,12 +3630,15 @@
       const timeRange = document.getElementById('summary-time-range');
       const container = document.getElementById('summary-metrics-container');
 
-      if (evtTitle) evtTitle.textContent = state.event?.name || 'TIAG-2026';
+      const evtName = state.event?.name || 'TIAG-2026 Camp Meeting';
+      const foodName = state.event?.foodName || state.event?.station || 'General Meal';
+      const scheduledTime = state.event?.serviceTime ? formatTime(state.event.serviceTime) : formatTime(state.startedAt);
+      const start = formatTime(state.startedAt);
+      const end = formatTime(state.endedAt);
+
+      if (evtTitle) evtTitle.textContent = evtName;
       if (timeRange) {
-        const station = state.event?.station || 'Main Kitchen';
-        const start = formatTime(state.startedAt);
-        const end = formatTime(state.endedAt);
-        timeRange.textContent = `${station} · ${start} – ${end}`;
+        timeRange.textContent = `${foodName} · ${scheduledTime} (${start} – ${end})`;
       }
 
       const cats = [
@@ -3333,37 +3653,110 @@
       let totServed = 0;
       let totLeft = 0;
 
+      cats.forEach(c => {
+        totInitial += (c.data.initial || 0);
+        totRestocked += (c.data.restocked || 0);
+        totAdjusted += (c.data.adjusted || 0);
+        totServed += (c.data.served || 0);
+        totLeft += (c.data.left || 0);
+      });
+
+      const totAvailable = totInitial + totRestocked + totAdjusted;
+      const totServedPct = totAvailable > 0 ? ((totServed / totAvailable) * 100).toFixed(1) : '0.0';
+      const totLeftPct = totAvailable > 0 ? ((totLeft / totAvailable) * 100).toFixed(1) : '0.0';
+
       let rowsHtml = '';
+      let distBarsHtml = '';
+
       cats.forEach(c => {
         const init = c.data.initial || 0;
         const rest = c.data.restocked || 0;
         const adj = c.data.adjusted || 0;
         const srv = c.data.served || 0;
         const left = c.data.left || 0;
+        const avail = init + rest + adj;
 
-        totInitial += init;
-        totRestocked += rest;
-        totAdjusted += adj;
-        totServed += srv;
-        totLeft += left;
+        const srvPct = avail > 0 ? ((srv / avail) * 100).toFixed(1) : '0.0';
+        const leftPct = avail > 0 ? ((left / avail) * 100).toFixed(1) : '0.0';
+        const shareOfTotal = totServed > 0 ? ((srv / totServed) * 100).toFixed(1) : '0.0';
 
         const adjStr = adj > 0 ? `+${adj}` : (adj < 0 ? `${adj}` : '0');
 
         rowsHtml += `
           <tr>
-            <td>${c.name}</td>
+            <td>
+              <div style="font-weight: bold;">${c.name}</div>
+              <div style="font-size: 0.65rem; color: var(--text-muted);">${shareOfTotal}% of all served</div>
+            </td>
             <td>${init}</td>
             <td>${rest > 0 ? '+' + rest : '0'}</td>
             <td>${adjStr}</td>
-            <td style="font-weight: bold;">${srv}</td>
-            <td style="font-weight: bold;">${left}</td>
+            <td>
+              <span style="font-weight: bold;">${srv}</span>
+              <span class="pct-pill served-pill">${srvPct}%</span>
+            </td>
+            <td>
+              <span style="font-weight: bold;">${left}</span>
+              <span class="pct-pill left-pill">${leftPct}%</span>
+            </td>
           </tr>
+        `;
+
+        distBarsHtml += `
+          <div class="distribution-item">
+            <span style="width: 80px; font-weight: 600;">${c.name}</span>
+            <div class="dist-bar-bg">
+              <div class="dist-bar-fill" style="width: ${shareOfTotal}%;"></div>
+            </div>
+            <span style="font-weight: 700; width: 44px; text-align: right;">${shareOfTotal}%</span>
+          </div>
         `;
       });
 
       const totAdjStr = totAdjusted > 0 ? `+${totAdjusted}` : (totAdjusted < 0 ? `${totAdjusted}` : '0');
 
-      const tableHtml = `
+      const contentHtml = `
+        <div class="summary-meta-row">
+          <span class="summary-badge food-badge">
+            <svg class="icon" style="width: 14px; height: 14px;"><use href="#icon-food"/></svg>
+            <span>Food: <strong>${foodName}</strong></span>
+          </span>
+          <span class="summary-badge time-badge">
+            <svg class="icon" style="width: 14px; height: 14px;"><use href="#icon-clock"/></svg>
+            <span>Time: <strong>${scheduledTime}</strong></span>
+          </span>
+        </div>
+
+        <div class="summary-kpi-grid">
+          <div class="kpi-card kpi-served">
+            <span class="kpi-label">TOTAL SERVED</span>
+            <div class="kpi-main">
+              <span class="kpi-num">${totServed}</span>
+              <span class="kpi-pct-badge">${totServedPct}%</span>
+            </div>
+            <span class="kpi-sub">${totServed} of ${totAvailable} portions</span>
+          </div>
+          <div class="kpi-card kpi-left">
+            <span class="kpi-label">REMAINING LEFT</span>
+            <div class="kpi-main">
+              <span class="kpi-num">${totLeft}</span>
+              <span class="kpi-pct-badge">${totLeftPct}%</span>
+            </div>
+            <span class="kpi-sub">${totLeft} unserved portions</span>
+          </div>
+        </div>
+
+        <div class="overall-progress-bar-wrapper">
+          <div class="overall-progress-bar">
+            <div class="progress-fill served-fill" style="width: ${totServedPct}%;"></div>
+            <div class="progress-fill left-fill" style="width: ${totLeftPct}%;"></div>
+          </div>
+          <div class="progress-legend">
+            <span><span class="dot dot-served"></span> Served: <strong>${totServedPct}%</strong></span>
+            <span><span class="dot dot-left"></span> Remaining: <strong>${totLeftPct}%</strong></span>
+          </div>
+        </div>
+
         <table class="summary-table">
           <thead>
             <tr>
@@ -3371,8 +3764,8 @@
               <th>Initial</th>
               <th>Restock</th>
               <th>Adjust</th>
-              <th>Served</th>
-              <th>Left</th>
+              <th>Served (%)</th>
+              <th>Left (%)</th>
             </tr>
           </thead>
           <tbody>
@@ -3382,20 +3775,35 @@
               <td>${totInitial}</td>
               <td>${totRestocked > 0 ? '+' + totRestocked : '0'}</td>
               <td>${totAdjStr}</td>
-              <td>${totServed}</td>
-              <td>${totLeft}</td>
+              <td>
+                <span>${totServed}</span>
+                <span class="pct-pill served-pill total-pill">${totServedPct}%</span>
+              </td>
+              <td>
+                <span>${totLeft}</span>
+                <span class="pct-pill left-pill total-pill">${totLeftPct}%</span>
+              </td>
             </tr>
           </tbody>
         </table>
+
+        <div class="category-distribution-card">
+          <div class="category-distribution-title">Distribution of Served Food (% of Total Plates)</div>
+          <div class="distribution-bars">
+            ${distBarsHtml}
+          </div>
+        </div>
       `;
 
-      if (container) container.innerHTML = tableHtml;
+      if (container) container.innerHTML = contentHtml;
     }
 
     function generateSummaryText(state) {
       if (!state || !state.categories) return '';
       const evtName = state.event?.name || 'TIAG-2026';
+      const foodName = state.event?.foodName || state.event?.station || 'General Meal';
       const stName = state.event?.station || 'Main';
+      const serviceTime = state.event?.serviceTime ? formatTime(state.event.serviceTime) : formatTime(state.startedAt);
       const start = formatTime(state.startedAt);
       const end = formatTime(state.endedAt);
 
@@ -3409,29 +3817,57 @@
       const totRest = (p.restocked || 0) + (w.restocked || 0) + (pa.restocked || 0);
       const totAdj = (p.adjusted || 0) + (w.adjusted || 0) + (pa.adjusted || 0);
 
+      const totAvail = totInit + totRest + totAdj;
+      const totServedPct = totAvail > 0 ? ((totServed / totAvail) * 100).toFixed(1) : '0.0';
+      const totLeftPct = totAvail > 0 ? ((totLeft / totAvail) * 100).toFixed(1) : '0.0';
+
+      const pAvail = (p.initial || 0) + (p.restocked || 0) + (p.adjusted || 0);
+      const pServedPct = pAvail > 0 ? (((p.served || 0) / pAvail) * 100).toFixed(1) : '0.0';
+      const pLeftPct = pAvail > 0 ? (((p.left || 0) / pAvail) * 100).toFixed(1) : '0.0';
+      const pShare = totServed > 0 ? (((p.served || 0) / totServed) * 100).toFixed(1) : '0.0';
+
+      const wAvail = (w.initial || 0) + (w.restocked || 0) + (w.adjusted || 0);
+      const wServedPct = wAvail > 0 ? (((w.served || 0) / wAvail) * 100).toFixed(1) : '0.0';
+      const wLeftPct = wAvail > 0 ? (((w.left || 0) / wAvail) * 100).toFixed(1) : '0.0';
+      const wShare = totServed > 0 ? (((w.served || 0) / totServed) * 100).toFixed(1) : '0.0';
+
+      const paAvail = (pa.initial || 0) + (pa.restocked || 0) + (pa.adjusted || 0);
+      const paServedPct = paAvail > 0 ? (((pa.served || 0) / paAvail) * 100).toFixed(1) : '0.0';
+      const paLeftPct = paAvail > 0 ? (((pa.left || 0) / paAvail) * 100).toFixed(1) : '0.0';
+      const paShare = totServed > 0 ? (((pa.served || 0) / totServed) * 100).toFixed(1) : '0.0';
+
       return `TIAG KITCHEN - END OF SERVICE REPORT
 Event: ${evtName}
+Food Type: ${foodName}
 Station: ${stName}
-Service Window: ${start} - ${end}
+Service Window: ${start} - ${end} (Meal Time: ${serviceTime})
+
+OVERALL RECONCILIATION:
+• Total Available Portions: ${totAvail}
+• TOTAL SERVED: ${totServed} (${totServedPct}%)
+• TOTAL REMAINING: ${totLeft} (${totLeftPct}%)
 
 PARTICIPANTS:
-• Initial: ${p.initial} | Restocked: +${p.restocked} | Adjusted: ${p.adjusted}
-• Served: ${p.served} | Remaining Left: ${p.left}
+• Available: ${pAvail} (Initial: ${p.initial} | Restocked: +${p.restocked} | Adjusted: ${p.adjusted})
+• Served: ${p.served} (${pServedPct}% served | ${pShare}% of all distributed food)
+• Remaining Left: ${p.left} (${pLeftPct}%)
 
 WORKERS:
-• Initial: ${w.initial} | Restocked: +${w.restocked} | Adjusted: ${w.adjusted}
-• Served: ${w.served} | Remaining Left: ${w.left}
+• Available: ${wAvail} (Initial: ${w.initial} | Restocked: +${w.restocked} | Adjusted: ${w.adjusted})
+• Served: ${w.served} (${wServedPct}% served | ${wShare}% of all distributed food)
+• Remaining Left: ${w.left} (${wLeftPct}%)
 
 PASTORS:
-• Initial: ${pa.initial} | Restocked: +${pa.restocked} | Adjusted: ${pa.adjusted}
-• Served: ${pa.served} | Remaining Left: ${pa.left}
+• Available: ${paAvail} (Initial: ${pa.initial} | Restocked: +${pa.restocked} | Adjusted: ${pa.adjusted})
+• Served: ${pa.served} (${paServedPct}% served | ${paShare}% of all distributed food)
+• Remaining Left: ${pa.left} (${paLeftPct}%)
 
 TOTALS:
 • Starting Portions: ${totInit}
 • Total Restocked: +${totRest}
 • Net Adjustments: ${totAdj >= 0 ? '+' + totAdj : totAdj}
-• TOTAL SERVED: ${totServed}
-• TOTAL REMAINING: ${totLeft}`;
+• TOTAL SERVED: ${totServed} (${totServedPct}%)
+• TOTAL REMAINING: ${totLeft} (${totLeftPct}%)`;
     }
 
     function generateSummaryCsv(state) {
@@ -3446,12 +3882,35 @@ TOTALS:
       const totRest = (p.restocked || 0) + (w.restocked || 0) + (pa.restocked || 0);
       const totAdj = (p.adjusted || 0) + (w.adjusted || 0) + (pa.adjusted || 0);
 
+      const totAvail = totInit + totRest + totAdj;
+      const totServedPct = totAvail > 0 ? ((totServed / totAvail) * 100).toFixed(1) : '0.0';
+      const totLeftPct = totAvail > 0 ? ((totLeft / totAvail) * 100).toFixed(1) : '0.0';
+
+      const pAvail = (p.initial || 0) + (p.restocked || 0) + (p.adjusted || 0);
+      const pServedPct = pAvail > 0 ? (((p.served || 0) / pAvail) * 100).toFixed(1) : '0.0';
+      const pLeftPct = pAvail > 0 ? (((p.left || 0) / pAvail) * 100).toFixed(1) : '0.0';
+
+      const wAvail = (w.initial || 0) + (w.restocked || 0) + (w.adjusted || 0);
+      const wServedPct = wAvail > 0 ? (((w.served || 0) / wAvail) * 100).toFixed(1) : '0.0';
+      const wLeftPct = wAvail > 0 ? (((w.left || 0) / wAvail) * 100).toFixed(1) : '0.0';
+
+      const paAvail = (pa.initial || 0) + (pa.restocked || 0) + (pa.adjusted || 0);
+      const paServedPct = paAvail > 0 ? (((pa.served || 0) / paAvail) * 100).toFixed(1) : '0.0';
+      const paLeftPct = paAvail > 0 ? (((pa.left || 0) / paAvail) * 100).toFixed(1) : '0.0';
+
+      const foodName = (state.event?.foodName || state.event?.station || 'General Meal').replace(/"/g, '""');
+      const serviceTime = state.event?.serviceTime || formatTime(state.startedAt);
+      const evtName = (state.event?.name || 'TIAG-2026').replace(/"/g, '""');
+
       const lines = [
-        'Category,Initial,Restocked,Adjusted,Served,Remaining',
-        `Participants,${p.initial},${p.restocked},${p.adjusted},${p.served},${p.left}`,
-        `Workers,${w.initial},${w.restocked},${w.adjusted},${w.served},${w.left}`,
-        `Pastors,${pa.initial},${pa.restocked},${pa.adjusted},${pa.served},${pa.left}`,
-        `TOTAL,${totInit},${totRest},${totAdj},${totServed},${totLeft}`
+        `# Event: "${evtName}"`,
+        `# Food Type: "${foodName}"`,
+        `# Service Time: "${serviceTime}"`,
+        'Category,Initial,Restocked,Adjusted,Total Available,Served,Percent Served,Remaining,Percent Remaining',
+        `Participants,${p.initial},${p.restocked},${p.adjusted},${pAvail},${p.served},${pServedPct}%,${p.left},${pLeftPct}%`,
+        `Workers,${w.initial},${w.restocked},${w.adjusted},${wAvail},${w.served},${wServedPct}%,${w.left},${wLeftPct}%`,
+        `Pastors,${pa.initial},${pa.restocked},${pa.adjusted},${paAvail},${pa.served},${paServedPct}%,${pa.left},${paLeftPct}%`,
+        `TOTAL,${totInit},${totRest},${totAdj},${totAvail},${totServed},${totServedPct}%,${totLeft},${totLeftPct}%`
       ];
       return lines.join('\r\n');
     }
